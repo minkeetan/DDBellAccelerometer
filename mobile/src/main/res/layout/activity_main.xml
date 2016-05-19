@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/backgroud"
+    tools:context="com.example.wbf486.accelerometerextract.MainActivity">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="#9E9E9E"
+        android:text="You can use this app to capture accelerometer data" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="#9E9E9E"
+        android:text="File will be stored as 'MyAccelerometerData.txt'" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingTop="40dp"
+        android:paddingBottom="40dp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#9E9E9E"
+            android:textSize="16sp"
+            android:text="Data Capture : " />
+        <Button
+            android:layout_height="50dp"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:background="#00BFA5"
+            android:layout_marginLeft="10dp"
+            android:text="START"
+            android:onClick="onButtonStartClick" />
+        <Button
+            android:layout_height="50dp"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:background="#00BFA5"
+            android:layout_marginLeft="10dp"
+            android:text="STOP"
+            android:onClick="onButtonStopClick" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#E6EE9C"
+            android:text="Data : "
+            android:textSize="20dp"
+            />
+
+        <TextView
+            android:id="@+id/accData_id"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#E6EE9C"
+            android:text="| 0 | 0 | 0 |"
+            android:textSize="20dp"
+            />
+    </LinearLayout>
+</LinearLayout>
