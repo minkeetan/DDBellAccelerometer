@@ -5,9 +5,12 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
+import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Surface;
 import android.view.View;
 import android.widget.TextView;
@@ -37,6 +40,10 @@ import com.google.android.gms.wearable.DataEventBuffer;
 import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.PutDataMapRequest;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.concurrent.TimeUnit;
 
 import java.io.File;
@@ -180,15 +187,46 @@ public class MainActivity extends AppCompatActivity implements
         wearAccelerometerCapture(1);
     }
 
-    public void onButtonStopClick(View view)
-    {
+    public void onButtonStopClick(View view) {
         mSensorManager.unregisterListener(this);
+        OutputStream os = null;
         wearAccelerometerCapture(0);
 
         Intent intent =
                 new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
         intent.setData(Uri.fromFile(file));
         sendBroadcast(intent);
+        boolean externalStorageAvailable = false;
+        String state = Environment.getExternalStorageState();
+        if (Environment.MEDIA_MOUNTED.equals(state))
+        {
+            File path = Environment.getExternalStorageDirectory();//Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+            File file = new File(path, "MyAccelerometerData.txt");
+            try {
+                path.mkdirs();
+                os = new FileOutputStream(file);
+                externalStorageAvailable = true;
+            }catch (Exception e)
+            {
+                Log.d("fileddbell", "Exception " + e);
+            }
+        }
+
+        try {
+            FileInputStream fis = openFileInput("MyAccelerometerData.txt");
+            InputStreamReader isr = new InputStreamReader(fis, "UTF-8");
+            BufferedReader bufferedReader = new BufferedReader(isr);
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                Log.d("fileddbell", "Data = " + line);
+                if(externalStorageAvailable == true) {
+                    writeToFile(line, os);
+                }
+            }
+            os.close();
+        } catch (Exception e) {
+            Log.d("fileddbell", "Exception " + e);
+        }
     }
 
     public void wearAccelerometerCapture(int enable) {
@@ -345,6 +383,26 @@ public class MainActivity extends AppCompatActivity implements
         public void onDismiss(DialogInterface dialog) {
             ((MainActivity) getActivity()).onDialogDismissed();
         }
-    }        
+    }
+
+    private boolean writeToFile(String dataToWrite, OutputStream os)
+    {
+        if(os == null)
+        {
+            return false;
+        }
+
+        byte [] data = dataToWrite.getBytes();
+        int length = dataToWrite.length();
+        try {
+            for(int i =0; i< length; i++) {
+                os.write(data[i]);
+            }
+            os.write('\n');
+        }catch(Exception e){
+
+        }
+        return true;
+    }
 }
 
