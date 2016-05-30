@@ -191,7 +191,7 @@ public class MainActivity extends AppCompatActivity implements
         mSensorManager.unregisterListener(this);
         OutputStream os = null;
         wearAccelerometerCapture(0);
-		int dummy = 0;
+
         Intent intent =
                 new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
         intent.setData(Uri.fromFile(file));
