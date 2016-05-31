@@ -13,12 +13,25 @@
         android:background="#9E9E9E"
         android:text="You can use this app to capture accelerometer data" />
 
-    <TextView
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#9E9E9E"
-        android:text="File will be stored as 'MyAccelerometerData.txt'" />
-
+        android:orientation="horizontal"
+        android:paddingTop="40dp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#9E9E9E"
+            android:textSize="18sp"
+            android:text="Create file : " />
+        <EditText
+            android:id="@+id/file_name"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:background="#E6EE9C"
+            android:hint="GunShot.txt"
+            android:inputType="text" />
+    </LinearLayout>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
