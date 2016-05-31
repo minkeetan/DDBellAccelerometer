@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Surface;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.app.Dialog;
 import android.app.DialogFragment;
@@ -85,6 +86,8 @@ public class MainActivity extends AppCompatActivity implements
     private float x, y, z;
     private File file;
     private File wearablefile;
+    private EditText mEdit;
+    public String gunShotFile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -185,6 +188,15 @@ public class MainActivity extends AppCompatActivity implements
     {
         mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
         wearAccelerometerCapture(1);
+
+        mEdit = (EditText)findViewById(R.id.file_name);
+        Log.d("fileddbell", "file length " + mEdit.getText().length());
+        if(mEdit.getText().length() < 1){
+            gunShotFile = "GunShot.txt";
+        }
+        else {
+            gunShotFile = mEdit.getText().toString();
+        }
     }
 
     public void onButtonStopClick(View view) {
@@ -200,10 +212,18 @@ public class MainActivity extends AppCompatActivity implements
         String state = Environment.getExternalStorageState();
         if (Environment.MEDIA_MOUNTED.equals(state))
         {
-            File path = Environment.getExternalStorageDirectory();//Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-            File file = new File(path, "MyAccelerometerData.txt");
+            File file;
+            File path = new File(Environment.getExternalStorageDirectory().getAbsolutePath()+"/MotoGunShot");//Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+            path.mkdirs();
+            // Link the filename with the input text
+            if(gunShotFile.indexOf( ".txt" ) == -1) {
+                file = new File(path, gunShotFile + ".txt");
+            }else{
+                file = new File(path, gunShotFile);
+            }
+
             try {
-                path.mkdirs();
+                //file.mkdirs();
                 os = new FileOutputStream(file);
                 externalStorageAvailable = true;
             }catch (Exception e)
@@ -225,6 +245,16 @@ public class MainActivity extends AppCompatActivity implements
             }
             os.close();
         } catch (Exception e) {
+            Log.d("fileddbell", "Exception " + e);
+        }
+
+        //delete internal files after save it to external storage
+        File path = this.getFilesDir();
+        file = new File(path, "MyAccelerometerData.txt");
+
+        try{
+            file.delete();
+        }catch (Exception e){
             Log.d("fileddbell", "Exception " + e);
         }
     }
