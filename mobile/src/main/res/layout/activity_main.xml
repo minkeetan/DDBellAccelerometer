@@ -11,25 +11,24 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="#9E9E9E"
-        android:text="You can use this app to capture accelerometer data" />
+        android:text="@string/app_info" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:paddingTop="40dp">
+        android:orientation="horizontal">
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="#9E9E9E"
             android:textSize="18sp"
-            android:text="Create file : " />
+            android:text="@string/create_file" />
         <EditText
             android:id="@+id/file_name"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:background="#E6EE9C"
-            android:hint="GunShot.txt"
+            android:hint="@string/app_file_hint"
             android:inputType="text" />
     </LinearLayout>
     <LinearLayout
@@ -43,14 +42,14 @@
             android:layout_height="wrap_content"
             android:background="#9E9E9E"
             android:textSize="16sp"
-            android:text="Data Capture : " />
+            android:text="@string/data_capture" />
         <Button
             android:layout_height="50dp"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:background="#00BFA5"
             android:layout_marginLeft="10dp"
-            android:text="START"
+            android:text="@string/start_capture"
             android:onClick="onButtonStartClick" />
         <Button
             android:layout_height="50dp"
@@ -58,7 +57,7 @@
             android:layout_weight="1"
             android:background="#00BFA5"
             android:layout_marginLeft="10dp"
-            android:text="STOP"
+            android:text="@string/stop_capture"
             android:onClick="onButtonStopClick" />
     </LinearLayout>
 
@@ -71,8 +70,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="#E6EE9C"
-            android:text="Data : "
-            android:textSize="20dp"
+            android:text="@string/data_display"
+            android:textSize="20sp"
             />
 
         <TextView
@@ -80,8 +79,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="#E6EE9C"
-            android:text="| 0 | 0 | 0 |"
-            android:textSize="20dp"
+            android:text="@string/data_format"
+            android:textSize="20sp"
             />
     </LinearLayout>
+    
+    <FrameLayout
+        android:id="@+id/sample_content_fragment"
+        android:layout_weight="2"
+        android:layout_width="match_parent"
+        android:layout_height="0px" />
 </LinearLayout>

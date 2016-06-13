@@ -9,6 +9,7 @@ import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v4.app.FragmentTransaction;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Surface;
@@ -20,26 +21,6 @@ import android.app.DialogFragment;
 import android.content.DialogInterface;
 import android.content.IntentSender.SendIntentException;
 
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
-import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
-import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.ConnectionResult;
-
-import com.google.android.gms.common.GoogleApiAvailability;
-import com.google.android.gms.common.ErrorDialogFragment;
-
-import com.google.android.gms.wearable.Wearable;
-import com.google.android.gms.wearable.Asset;
-import com.google.android.gms.wearable.DataApi;
-import com.google.android.gms.wearable.DataItem;
-import com.google.android.gms.wearable.DataEvent;
-import com.google.android.gms.wearable.DataMap;
-import com.google.android.gms.wearable.DataMapItem;
-import com.google.android.gms.wearable.DataEventBuffer;
-import com.google.android.gms.wearable.PutDataRequest;
-import com.google.android.gms.wearable.PutDataMapRequest;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -55,10 +36,7 @@ import java.io.IOException;
 import java.lang.Exception;
 
 public class MainActivity extends AppCompatActivity implements 
-		SensorEventListener,
-		DataApi.DataListener,
-    GoogleApiClient.ConnectionCallbacks,
-    GoogleApiClient.OnConnectionFailedListener {
+		SensorEventListener {
 
 		private static final long TIMEOUT_MS = 100;
 
@@ -69,16 +47,10 @@ public class MainActivity extends AppCompatActivity implements
     private static final String DIALOG_ERROR = "dialog_error";
     private static final String STATE_RESOLVING_ERROR = "resolving_error";
 
-		public static final String ACCELEROMETER_DATA_PATH = "/accelerometer_data";
-		public static final String ACCELEROMETER_DATA_ASSET = "/accelerometer_data_asset";
-
-		public static final String ACCCAPTURE_TRIGGER_PATH = "/accelerometer_capture_trigger";
-		private static final String ACCCAPTURE_TRIGGER_KEY = "com.example.key.accelerometer_capture_trigger";
 
     // Bool to track whether the app is already resolving an error
     private boolean mResolvingError = false;
     
-    private GoogleApiClient mGoogleApiClient;
 
     private SensorManager mSensorManager;
     private Sensor mAccelerometer;
@@ -98,51 +70,41 @@ public class MainActivity extends AppCompatActivity implements
 
         setContentView(R.layout.activity_main);
         
-				mResolvingError = (savedInstanceState != null) && savedInstanceState.getBoolean(STATE_RESOLVING_ERROR, false);
-        
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-        .addConnectionCallbacks(this)
-        .addOnConnectionFailedListener(this)
-        // Request access only to the Wearable API
-        .addApi(Wearable.API)
-        .build();        
+				mResolvingError = (savedInstanceState != null) && savedInstanceState.getBoolean(STATE_RESOLVING_ERROR, false);       
+				
+        if (savedInstanceState == null) {
+            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+            BluetoothFragment fragment = new BluetoothFragment();
+            transaction.replace(R.id.sample_content_fragment, fragment);
+            transaction.commit();
+        }				
     }
 
 		@Override
     public void onStart() {
     		super.onStart();
-    		mGoogleApiClient.connect();           
+    		          
     }
     
 		@Override
     public void onStop() {
-    		mGoogleApiClient.disconnect();
+    		
     		super.onStop();
     }    
 
     protected void onResume() {
         //mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
         super.onResume();
-        mGoogleApiClient.connect();
+        
     }
 
     protected void onPause() {
         super.onPause();
         //mSensorManager.unregisterListener(this);
-				Wearable.DataApi.removeListener(mGoogleApiClient, this);
-        mGoogleApiClient.disconnect();        
+				
+               
     }
 
-    @Override
-    public void onConnected(Bundle connectionHint) {
-        // Now you can use the Data Layer API
-        Wearable.DataApi.addListener(mGoogleApiClient, this);
-    }
-    
-    @Override
-    public void onConnectionSuspended(int cause) {
-        showErrorDialog(cause);
-    }
 
 		@Override
 		protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -150,10 +112,7 @@ public class MainActivity extends AppCompatActivity implements
 		        mResolvingError = false;
 		        if (resultCode == RESULT_OK) {
 		            // Make sure the app is not already connected or attempting to connect
-		            if (!mGoogleApiClient.isConnecting() &&
-		                    !mGoogleApiClient.isConnected()) {
-		                mGoogleApiClient.connect();
-		            }
+
 		        }
 		    }
 		}
@@ -163,26 +122,7 @@ public class MainActivity extends AppCompatActivity implements
 		    super.onSaveInstanceState(outState);
 		    outState.putBoolean(STATE_RESOLVING_ERROR, mResolvingError);
 		}
-		
-    @Override
-    public void onConnectionFailed(ConnectionResult result) {
-				if (mResolvingError) {
-    				// Already attempting to resolve an error.
-    				return;
-    		} else if (result.hasResolution()) {
-		        try {
-		            mResolvingError = true;
-		            result.startResolutionForResult(this, REQUEST_RESOLVE_ERROR);
-		        } catch (SendIntentException e) {
-		            // There was an error with the resolution intent. Try again.
-		            mGoogleApiClient.connect();
-		        }
-		    } else {
-		        // Show dialog using GoogleApiAvailability.getErrorDialog()
-		        showErrorDialog(result.getErrorCode());
-		        mResolvingError = true;
-		    }
-    } 
+
 
     public void onButtonStartClick(View view)
     {
@@ -260,31 +200,9 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     public void wearAccelerometerCapture(int enable) {
-    		if (mGoogleApiClient == null)
-            return;
-
-        PutDataMapRequest putDataMapReq = PutDataMapRequest.create(ACCCAPTURE_TRIGGER_PATH);
-        putDataMapReq.getDataMap().putInt(ACCCAPTURE_TRIGGER_KEY, enable);
-        PutDataRequest putDataReq = putDataMapReq.asPutDataRequest().setUrgent();
-        PendingResult<DataApi.DataItemResult> pendingResult = Wearable.DataApi.putDataItem(mGoogleApiClient, putDataReq);    	
+ 	
     }
 
-    @Override
-    public void onDataChanged(DataEventBuffer dataEvents) {
-        for (DataEvent event : dataEvents) {
-            if (event.getType() == DataEvent.TYPE_CHANGED) {
-                // DataItem changed
-                DataItem item = event.getDataItem();
-                if (item.getUri().getPath().equals(ACCELEROMETER_DATA_PATH)) {
-							      DataMapItem dataMapItem = DataMapItem.fromDataItem(event.getDataItem());
-							      Asset asset = dataMapItem.getDataMap().getAsset(ACCELEROMETER_DATA_ASSET);
-							      writeAssetToFile(asset);
-							  }				                
-            } else if (event.getType() == DataEvent.TYPE_DELETED) {
-                // DataItem deleted
-            }
-        }
-    }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
@@ -329,58 +247,10 @@ public class MainActivity extends AppCompatActivity implements
 
     }
 
-		void writeAssetToFile(Asset asset) {
-		    if (asset == null) {
-		        throw new IllegalArgumentException("Asset must be non-null");
-		    }
-		    
-		    ConnectionResult result = mGoogleApiClient.blockingConnect(TIMEOUT_MS, TimeUnit.MILLISECONDS);
-		    if (!result.isSuccess()) {
-		        showErrorDialog(result.getErrorCode());
-		    }
-		    
-		    // convert asset into a file descriptor and block until it's ready
-		    InputStream assetInputStream = Wearable.DataApi.getFdForAsset(mGoogleApiClient, asset).await().getInputStream();
+/*   
+//----- The rest of this code is all about building the error dialog -----
 
-		    if (assetInputStream == null) {
-		        throw new IllegalArgumentException("Requested an unknown Asset");
-		    }
-		    
-		    try {
-				    File path = this.getFilesDir();
-            wearablefile = new File(path, "MyWearableAccelerometerData.txt");
-				    FileOutputStream output = new FileOutputStream(wearablefile);
-				    
-				    try {
-				        try {
-				            byte[] buffer = new byte[4 * 1024]; // or other buffer size
-				            int read;
-				
-				            while ((read = assetInputStream.read(buffer)) != -1) {
-				                output.write(buffer, 0, read);
-				            }
-				            output.flush();
-				        } finally {
-				            output.close();
-				        }
-				    } catch (Exception e) {
-				        e.printStackTrace(); // handle exception, define IOException and others
-				    }
-				    
-				} catch (FileNotFoundException e) {
-            e.printStackTrace();          
-				} finally {
-						try {
-				    		assetInputStream.close();
-				    } catch (IOException e) {
-        				e.printStackTrace();
-        		}
-				}
-		}
-    
-/*----- The rest of this code is all about building the error dialog -----*/
-
-    /* 1. Creates a dialog for an error message */
+    // 1. Creates a dialog for an error message
     private void showErrorDialog(int errorCode) {
         // Create a fragment for the error dialog
         ErrorDialogFragment dialogFragment = new ErrorDialogFragment();
@@ -392,12 +262,12 @@ public class MainActivity extends AppCompatActivity implements
         dialogFragment.show(getFragmentManager(), "errordialog");
     }
 
-    /* 2. Called from ErrorDialogFragment when the dialog is dismissed. */
+    // 2. Called from ErrorDialogFragment when the dialog is dismissed.
     public void onDialogDismissed() {
         mResolvingError = false;
     }
     
-    /* 3. A fragment to display an error dialog */
+    // 3. A fragment to display an error dialog
     public static class ErrorDialogFragment extends DialogFragment {
         public ErrorDialogFragment() { }
 
@@ -414,7 +284,7 @@ public class MainActivity extends AppCompatActivity implements
             ((MainActivity) getActivity()).onDialogDismissed();
         }
     }
-
+*/
     private boolean writeToFile(String dataToWrite, OutputStream os)
     {
         if(os == null)
