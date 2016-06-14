@@ -53,6 +53,8 @@ public class BluetoothFragment extends Fragment {
      * Member object for the chat services
      */
     private BluetoothService mBTService = null;
+  
+    OnBTServiceDataAvailableListener mCallback;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -109,6 +111,25 @@ public class BluetoothFragment extends Fragment {
         }
     }
 
+    // Container Activity must implement this interface
+    public interface OnBTServiceDataAvailableListener {
+        public void onBTServiceDataRead(String readMessage);
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+      
+        // This makes sure that the container activity has implemented
+        // the callback interface. If not, it throws an exception
+        try {
+            mCallback = (OnBTServiceDataAvailableListener) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString()
+                    + " must implement OnBTServiceDataAvailableListener");
+        }
+    }
+
     /**
      * Makes this device discoverable.
      */
@@ -118,26 +139,6 @@ public class BluetoothFragment extends Fragment {
             Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
             discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
             startActivity(discoverableIntent);
-        }
-    }
-
-    /**
-     * Sends a message.
-     *
-     * @param message A string of text to send.
-     */
-    private void sendMessage(String message) {
-        // Check that we're actually connected before trying anything
-        if (mBTService.getState() != BluetoothService.STATE_CONNECTED) {
-            Toast.makeText(getActivity(), R.string.not_connected, Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // Check that there's actually something to send
-        if (message.length() > 0) {
-            // Get the message bytes and tell the BluetoothChatService to write
-            byte[] send = message.getBytes();
-            mBTService.write(send);
         }
     }
 
@@ -201,13 +202,13 @@ public class BluetoothFragment extends Fragment {
                     byte[] writeBuf = (byte[]) msg.obj;
                     // construct a string from the buffer
                     String writeMessage = new String(writeBuf);
-                    
+                  
                     break;
                 case Constants.MESSAGE_READ:
                     byte[] readBuf = (byte[]) msg.obj;
                     // construct a string from the valid bytes in the buffer
                     String readMessage = new String(readBuf, 0, msg.arg1);
-                    
+                    mCallback.onBTServiceDataRead(readMessage);
                     break;
                 case Constants.MESSAGE_DEVICE_NAME:
                     // save the connected device's name

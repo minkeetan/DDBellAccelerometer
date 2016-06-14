@@ -82,6 +82,15 @@
             android:text="@string/data_format"
             android:textSize="20sp"
             />
+        
+        <TextView
+            android:id="@+id/accWearData_id"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#E6EE9C"
+            android:text="@string/data_format"
+            android:textSize="20sp"
+            />
     </LinearLayout>
     
     <FrameLayout

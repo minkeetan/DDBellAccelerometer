@@ -36,7 +36,8 @@ import java.io.IOException;
 import java.lang.Exception;
 
 public class MainActivity extends AppCompatActivity implements 
-		SensorEventListener {
+		SensorEventListener,
+		BluetoothFragment.OnBTServiceDataAvailableListener {
 
 		private static final long TIMEOUT_MS = 100;
 
@@ -47,14 +48,16 @@ public class MainActivity extends AppCompatActivity implements
     private static final String DIALOG_ERROR = "dialog_error";
     private static final String STATE_RESOLVING_ERROR = "resolving_error";
 
-
     // Bool to track whether the app is already resolving an error
     private boolean mResolvingError = false;
     
+    /*true indicates start wear accelerometer data parsing, false indicates stop*/
+    private boolean mAccelerometerCapture = false;
 
     private SensorManager mSensorManager;
     private Sensor mAccelerometer;
     private long lastUpdate = 0;
+    private long lastUpdateWear = 0;
     private float x, y, z;
     private File file;
     private File wearablefile;
@@ -127,7 +130,7 @@ public class MainActivity extends AppCompatActivity implements
     public void onButtonStartClick(View view)
     {
         mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
-        wearAccelerometerCapture(1);
+        mAccelerometerCapture = true;
 
         mEdit = (EditText)findViewById(R.id.file_name);
         Log.d("fileddbell", "file length " + mEdit.getText().length());
@@ -142,7 +145,7 @@ public class MainActivity extends AppCompatActivity implements
     public void onButtonStopClick(View view) {
         mSensorManager.unregisterListener(this);
         OutputStream os = null;
-        wearAccelerometerCapture(0);
+        mAccelerometerCapture = false;
 
         Intent intent =
                 new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
@@ -199,11 +202,6 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
-    public void wearAccelerometerCapture(int enable) {
- 	
-    }
-
-
     @Override
     public void onSensorChanged(SensorEvent event) {
         //Right in here is where you put code to read the current sensor values and
@@ -218,7 +216,6 @@ public class MainActivity extends AppCompatActivity implements
         long curTime = System.currentTimeMillis();
 
         if ((curTime - lastUpdate) > 100) {
-            long diffTime = (curTime - lastUpdate);
             lastUpdate = curTime;
 
             String accStr = " | " + x + " | " + y + " | " + z + " | \n";
@@ -245,6 +242,34 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
+    }
+    
+    public void onBTServiceDataRead(String readMessage) {
+				if(mAccelerometerCapture) {
+		    		long curTime = System.currentTimeMillis();
+		    		
+						if ((curTime - lastUpdateWear) > 100) {
+				        lastUpdateWear = curTime;
+				        
+								TextView dataView = (TextView)findViewById(R.id.accWearData_id);
+				        dataView.setText(readMessage);
+				
+				        // save the data in a file, sample at 1/50ms
+				        File path = this.getFilesDir();
+				        file = new File(path, "MyAccelerometerWearData.txt");
+				
+				        try {
+				            FileOutputStream stream = new FileOutputStream(file, true);
+				            stream.write(readMessage.getBytes());
+				            stream.flush();
+				            stream.close();
+				        } catch (FileNotFoundException e) {
+				            e.printStackTrace();
+				        } catch (IOException e) {
+				            e.printStackTrace();
+				        }
+				    }
+				}
     }
 
 /*   

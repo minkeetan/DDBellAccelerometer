@@ -54,6 +54,8 @@ public class BluetoothFragment extends Fragment {
      */
     private BluetoothService mBTService = null;
 
+    OnBTServiceStateChangeListener mCallback;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -109,6 +111,25 @@ public class BluetoothFragment extends Fragment {
         }
     }
 
+    // Container Activity must implement this interface
+    public interface OnBTServiceStateChangeListener {
+        public void onBTServiceStateConnected(boolean state);
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        
+        // This makes sure that the container activity has implemented
+        // the callback interface. If not, it throws an exception
+        try {
+            mCallback = (OnBTServiceStateChangeListener) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString()
+                    + " must implement OnBTServiceStateChangeListener");
+        }
+    }
+
     /**
      * Makes this device discoverable.
      */
@@ -126,7 +147,7 @@ public class BluetoothFragment extends Fragment {
      *
      * @param message A string of text to send.
      */
-    private void sendMessage(String message) {
+    public void sendMessage(String message) {
         // Check that we're actually connected before trying anything
         if (mBTService.getState() != BluetoothService.STATE_CONNECTED) {
             Toast.makeText(getActivity(), R.string.not_connected, Toast.LENGTH_SHORT).show();
@@ -187,6 +208,8 @@ public class BluetoothFragment extends Fragment {
                     switch (msg.arg1) {
                         case BluetoothService.STATE_CONNECTED:
                             setStatus(getString(R.string.title_connected_to, mConnectedDeviceName));
+                            // Send the event to the host activity
+        										mCallback.onBTServiceStateConnected(true);
                             break;
                         case BluetoothService.STATE_CONNECTING:
                             setStatus(R.string.title_connecting);
@@ -194,6 +217,8 @@ public class BluetoothFragment extends Fragment {
                         case BluetoothService.STATE_LISTEN:
                         case BluetoothService.STATE_NONE:
                             setStatus(R.string.title_not_connected);
+                            // Send the event to the host activity
+        										mCallback.onBTServiceStateConnected(false);
                             break;
                     }
                     break;

@@ -25,7 +25,8 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity implements
-		SensorEventListener {
+		SensorEventListener,
+		BluetoothFragment.OnBTServiceStateChangeListener {
 
 		// Request code to use when launching the resolution activity
     private static final int REQUEST_RESOLVE_ERROR = 1001;
@@ -33,26 +34,19 @@ public class MainActivity extends AppCompatActivity implements
     // Unique tag for the error dialog fragment
     private static final String DIALOG_ERROR = "dialog_error";
     private static final String STATE_RESOLVING_ERROR = "resolving_error";
-    
-    public static final String ACCELEROMETER_DATA_PATH = "/accelerometer_data";
-		public static final String ACCELEROMETER_DATA_ASSET = "/accelerometer_data_asset";
-
-		public static final String ACCCAPTURE_TRIGGER_PATH = "/accelerometer_capture_trigger";
-		private static final String ACCCAPTURE_TRIGGER_KEY = "com.example.key.accelerometer_capture_trigger";
 
     private TextView mTextView;
 
     // Bool to track whether the app is already resolving an error
     private boolean mResolvingError = false;
-
-		/*1 indicates start accelerometer data capture, 0 indicates stop*/
-    private int mAccelerometerCapture = 0;
     
     private SensorManager mSensorManager;
     private Sensor mAccelerometer;
     private long lastUpdate = 0;
     private float x, y, z;
     private File mAccelerometerDataFile;  
+
+		private BluetoothFragment mBTFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,8 +77,8 @@ public class MainActivity extends AppCompatActivity implements
 				
         if (savedInstanceState == null) {
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-            BluetoothFragment fragment = new BluetoothFragment();
-            transaction.replace(R.id.sample_content_fragment, fragment);
+            mBTFragment = new BluetoothFragment();
+            transaction.replace(R.id.sample_content_fragment, mBTFragment);
             transaction.commit();
         }				
     }
@@ -111,12 +105,6 @@ public class MainActivity extends AppCompatActivity implements
     protected void onPause() {
         super.onPause();
 
-        
-        if(1 == mAccelerometerCapture)
-        {
-        		mSensorManager.unregisterListener(this);
-        }
-        
     }
 
 		@Override
@@ -170,7 +158,12 @@ public class MainActivity extends AppCompatActivity implements
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
-            }            
+            }
+            
+            //send the accelerometer data to mobile app via BT connection
+            if(mBTFragment != null) {
+            		mBTFragment.sendMessage(accStr);
+            }        
         }
     }
 
@@ -178,21 +171,16 @@ public class MainActivity extends AppCompatActivity implements
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
     }
-
-		public void sendAccelerometerData() {
-
-				int size = (int) mAccelerometerDataFile.length();
-				byte[] bytes = new byte[size];
-				try {
-				    BufferedInputStream buf = new BufferedInputStream(new FileInputStream(mAccelerometerDataFile));
-				    buf.read(bytes, 0, bytes.length);
-				    buf.close();
-				} catch (FileNotFoundException e) {
-				    e.printStackTrace();
-				} catch (IOException e) {
-				    e.printStackTrace();
+		
+		public void onBTServiceStateConnected(boolean state) {
+				if(state) {
+						//start accelerometer capture once detect BT connected
+						mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
 				}
-
+				else {
+						//stop accelerometer capture if BT disconnected
+						mSensorManager.unregisterListener(this);
+				}
 		}
 
 /*
