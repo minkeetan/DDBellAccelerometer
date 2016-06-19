@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.support.wearable.view.WatchViewStub;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v4.app.FragmentTransaction;
+import android.view.WindowManager;
 import android.widget.TextView;
 import android.app.Dialog;
 import android.app.DialogFragment;
@@ -26,19 +27,12 @@ import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity implements
 		SensorEventListener,
-		BluetoothFragment.OnBTServiceStateChangeListener {
-
-		// Request code to use when launching the resolution activity
-    private static final int REQUEST_RESOLVE_ERROR = 1001;
-
-    // Unique tag for the error dialog fragment
-    private static final String DIALOG_ERROR = "dialog_error";
-    private static final String STATE_RESOLVING_ERROR = "resolving_error";
+		BluetoothFragment.OnBTServiceStateChangeListener,
+		WatchViewStub.OnLayoutInflatedListener {
 
     private TextView mTextView;
-
-    // Bool to track whether the app is already resolving an error
-    private boolean mResolvingError = false;
+    
+    private boolean mBTStateConnected = false;
     
     private SensorManager mSensorManager;
     private Sensor mAccelerometer;
@@ -52,17 +46,10 @@ public class MainActivity extends AppCompatActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        
+
         final WatchViewStub stub = (WatchViewStub) findViewById(R.id.watch_view_stub);
-        stub.setOnLayoutInflatedListener(new WatchViewStub.OnLayoutInflatedListener() {
-            @Override
-            public void onLayoutInflated(WatchViewStub stub) {
-                mTextView = (TextView) stub.findViewById(R.id.text);
-            }
-        });
-    
-				mResolvingError = (savedInstanceState != null) && savedInstanceState.getBoolean(STATE_RESOLVING_ERROR, false);
-              
+        stub.setOnLayoutInflatedListener(this);
+
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 				if (mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null) {
 				  // Success! There's a accelerometer.
@@ -75,55 +62,46 @@ public class MainActivity extends AppCompatActivity implements
 				  // Failure! No accelerometer.
 				}
 				
-        if (savedInstanceState == null) {
-            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-            mBTFragment = new BluetoothFragment();
-            transaction.replace(R.id.sample_content_fragment, mBTFragment);
-            transaction.commit();
-        }				
+				getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
 		@Override
     public void onStart() {
-    		super.onStart();
-      
+    		super.onStart(); 
     }
     
 		@Override
     public void onStop() {
-
+    		mSensorManager.unregisterListener(this);
     		super.onStop();
     }    
 
     @Override
     protected void onResume() {
         super.onResume();
-
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-
     }
-
-		@Override
-		protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		    if (requestCode == REQUEST_RESOLVE_ERROR) {
-		        mResolvingError = false;
-		        if (resultCode == RESULT_OK) {
-		            // Make sure the app is not already connected or attempting to connect
-
-		        }
-		    }
-		}
 
 		@Override
 		protected void onSaveInstanceState(Bundle outState) {
 		    super.onSaveInstanceState(outState);
-		    outState.putBoolean(STATE_RESOLVING_ERROR, mResolvingError);
 		}
-		   
+
+    @Override
+    public void onLayoutInflated(WatchViewStub stub) {
+    		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+    		mBTFragment = new BluetoothFragment();
+    		transaction.replace(R.id.sample_content_fragment, mBTFragment);
+    		transaction.commit();
+    		
+    		mTextView = (TextView) stub.findViewById(R.id.accWearData_id);
+    		
+    		mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);       		
+    }		   
 
     @Override
     public void onSensorChanged(SensorEvent event) {
@@ -147,7 +125,7 @@ public class MainActivity extends AppCompatActivity implements
             
             // save the data in a file, sample at 1/50ms
             File path = this.getFilesDir();
-            mAccelerometerDataFile = new File(path, "MyAccelerometerData.txt");
+            mAccelerometerDataFile = new File(path, "MyAccelerometerWearData.txt");
 
             try {
                 FileOutputStream stream = new FileOutputStream(mAccelerometerDataFile, true);
@@ -161,7 +139,7 @@ public class MainActivity extends AppCompatActivity implements
             }
             
             //send the accelerometer data to mobile app via BT connection
-            if(mBTFragment != null) {
+            if( (mBTFragment != null) && (mBTStateConnected == true) ) {
             		mBTFragment.sendMessage(accStr);
             }        
         }
@@ -174,52 +152,11 @@ public class MainActivity extends AppCompatActivity implements
 		
 		public void onBTServiceStateConnected(boolean state) {
 				if(state) {
-						//start accelerometer capture once detect BT connected
-						mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+						mBTStateConnected = true;
 				}
 				else {
-						//stop accelerometer capture if BT disconnected
-						mSensorManager.unregisterListener(this);
+						mBTStateConnected = false;
 				}
 		}
-
-/*
-//----- The rest of this code is all about building the error dialog -----
-
-    // 1. Creates a dialog for an error message
-    private void showErrorDialog(int errorCode) {
-        // Create a fragment for the error dialog
-        ErrorDialogFragment dialogFragment = new ErrorDialogFragment();
-        // Pass the error that should be displayed
-        Bundle args = new Bundle();
-        args.putInt(DIALOG_ERROR, errorCode);
-        dialogFragment.setArguments(args);
-        //dialogFragment.show(getSupportFragmentManager(), "errordialog");
-        dialogFragment.show(getFragmentManager(), "errordialog");
-    }
-
-    // 2. Called from ErrorDialogFragment when the dialog is dismissed.
-    public void onDialogDismissed() {
-        mResolvingError = false;
-    }
-    
-    // 3. A fragment to display an error dialog
-    public static class ErrorDialogFragment extends DialogFragment {
-        public ErrorDialogFragment() { }
-
-        @Override
-        public Dialog onCreateDialog(Bundle savedInstanceState) {
-            // Get the error code and retrieve the appropriate dialog
-            int errorCode = this.getArguments().getInt(DIALOG_ERROR);
-            return GoogleApiAvailability.getInstance().getErrorDialog(
-                    this.getActivity(), errorCode, REQUEST_RESOLVE_ERROR);
-        }
-
-        @Override
-        public void onDismiss(DialogInterface dialog) {
-            ((MainActivity) getActivity()).onDialogDismissed();
-        }
-    }
-*/
 }
 

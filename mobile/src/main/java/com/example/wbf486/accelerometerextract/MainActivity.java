@@ -9,11 +9,13 @@ import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Surface;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.app.Dialog;
@@ -39,18 +41,6 @@ public class MainActivity extends AppCompatActivity implements
 		SensorEventListener,
 		BluetoothFragment.OnBTServiceDataAvailableListener {
 
-		private static final long TIMEOUT_MS = 100;
-
-		// Request code to use when launching the resolution activity
-    private static final int REQUEST_RESOLVE_ERROR = 1001;
-
-    // Unique tag for the error dialog fragment
-    private static final String DIALOG_ERROR = "dialog_error";
-    private static final String STATE_RESOLVING_ERROR = "resolving_error";
-
-    // Bool to track whether the app is already resolving an error
-    private boolean mResolvingError = false;
-    
     /*true indicates start wear accelerometer data parsing, false indicates stop*/
     private boolean mAccelerometerCapture = false;
 
@@ -72,15 +62,15 @@ public class MainActivity extends AppCompatActivity implements
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
         setContentView(R.layout.activity_main);
-        
-				mResolvingError = (savedInstanceState != null) && savedInstanceState.getBoolean(STATE_RESOLVING_ERROR, false);       
-				
+
         if (savedInstanceState == null) {
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
             BluetoothFragment fragment = new BluetoothFragment();
             transaction.replace(R.id.sample_content_fragment, fragment);
             transaction.commit();
-        }				
+        }
+        
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);			
     }
 
 		@Override
@@ -96,34 +86,26 @@ public class MainActivity extends AppCompatActivity implements
     }    
 
     protected void onResume() {
-        //mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
-        super.onResume();
-        
+
+        super.onResume();        
     }
 
     protected void onPause() {
         super.onPause();
-        //mSensorManager.unregisterListener(this);
-				
-               
+     
     }
 
 
 		@Override
 		protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		    if (requestCode == REQUEST_RESOLVE_ERROR) {
-		        mResolvingError = false;
-		        if (resultCode == RESULT_OK) {
-		            // Make sure the app is not already connected or attempting to connect
-
-		        }
-		    }
+		    Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.sample_content_fragment);
+		    fragment.onActivityResult(requestCode, resultCode, data);
+		    super.onActivityResult(requestCode, resultCode, data);
 		}
 
 		@Override
 		protected void onSaveInstanceState(Bundle outState) {
 		    super.onSaveInstanceState(outState);
-		    outState.putBoolean(STATE_RESOLVING_ERROR, mResolvingError);
 		}
 
 
@@ -246,70 +228,26 @@ public class MainActivity extends AppCompatActivity implements
     
     public void onBTServiceDataRead(String readMessage) {
 				if(mAccelerometerCapture) {
-		    		long curTime = System.currentTimeMillis();
-		    		
-						if ((curTime - lastUpdateWear) > 100) {
-				        lastUpdateWear = curTime;
-				        
-								TextView dataView = (TextView)findViewById(R.id.accWearData_id);
-				        dataView.setText(readMessage);
-				
-				        // save the data in a file, sample at 1/50ms
-				        File path = this.getFilesDir();
-				        file = new File(path, "MyAccelerometerWearData.txt");
-				
-				        try {
-				            FileOutputStream stream = new FileOutputStream(file, true);
-				            stream.write(readMessage.getBytes());
-				            stream.flush();
-				            stream.close();
-				        } catch (FileNotFoundException e) {
-				            e.printStackTrace();
-				        } catch (IOException e) {
-				            e.printStackTrace();
-				        }
-				    }
+						TextView dataView = (TextView)findViewById(R.id.accWearData_id);
+						dataView.setText(readMessage);
+						
+						// save the data in a file, sample at 1/50ms
+						File path = this.getFilesDir();
+						file = new File(path, "MyAccelerometerWearData.txt");
+						
+						try {
+						    FileOutputStream stream = new FileOutputStream(file, true);
+						    stream.write(readMessage.getBytes());
+						    stream.flush();
+						    stream.close();
+						} catch (FileNotFoundException e) {
+						    e.printStackTrace();
+						} catch (IOException e) {
+						    e.printStackTrace();
+						}
 				}
     }
 
-/*   
-//----- The rest of this code is all about building the error dialog -----
-
-    // 1. Creates a dialog for an error message
-    private void showErrorDialog(int errorCode) {
-        // Create a fragment for the error dialog
-        ErrorDialogFragment dialogFragment = new ErrorDialogFragment();
-        // Pass the error that should be displayed
-        Bundle args = new Bundle();
-        args.putInt(DIALOG_ERROR, errorCode);
-        dialogFragment.setArguments(args);
-        //dialogFragment.show(getSupportFragmentManager(), "errordialog");
-        dialogFragment.show(getFragmentManager(), "errordialog");
-    }
-
-    // 2. Called from ErrorDialogFragment when the dialog is dismissed.
-    public void onDialogDismissed() {
-        mResolvingError = false;
-    }
-    
-    // 3. A fragment to display an error dialog
-    public static class ErrorDialogFragment extends DialogFragment {
-        public ErrorDialogFragment() { }
-
-        @Override
-        public Dialog onCreateDialog(Bundle savedInstanceState) {
-            // Get the error code and retrieve the appropriate dialog
-            int errorCode = this.getArguments().getInt(DIALOG_ERROR);
-            return GoogleApiAvailability.getInstance().getErrorDialog(
-                    this.getActivity(), errorCode, REQUEST_RESOLVE_ERROR);
-        }
-
-        @Override
-        public void onDismiss(DialogInterface dialog) {
-            ((MainActivity) getActivity()).onDialogDismissed();
-        }
-    }
-*/
     private boolean writeToFile(String dataToWrite, OutputStream os)
     {
         if(os == null)

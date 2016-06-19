@@ -17,17 +17,6 @@
   xmlns:AccelerometerExtract="http://schemas.android.com/apk/res-auto" >
 
     <item
-        android:id="@+id/secure_connect_scan"
-        android:icon="@drawable/ic_action_device_access_bluetooth_searching"
-        android:title="@string/secure_connect"
-        AccelerometerExtract:showAsAction="ifRoom"/>
-
-    <item
-        android:id="@+id/insecure_connect_scan"
-        android:title="@string/insecure_connect"
-        AccelerometerExtract:showAsAction="never"/>
-
-    <item
         android:id="@+id/discoverable"
         android:title="@string/discoverable"
         AccelerometerExtract:showAsAction="never"/>

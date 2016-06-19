@@ -3,16 +3,32 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#9E9E9E"
     tools:context="com.example.wbf486.accelerometerextract.MainActivity"
     tools:deviceIds="wear_round">
 
-    <TextView
-        android:id="@+id/text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:text="@string/hello_round" />
+		<RelativeLayout
+		    android:orientation="horizontal"
+		    android:layout_width="match_parent"
+		    android:layout_height="match_parent">
+		
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+        		android:layout_centerVertical="true"
+            android:text="@string/wear_data_display"
+            />
+        
+        <TextView
+            android:id="@+id/accWearData_id"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+        		android:layout_centerVertical="true"
+            android:text="@string/data_format"
+            />
+		</RelativeLayout>
 
 		<FrameLayout
         android:id="@+id/sample_content_fragment"

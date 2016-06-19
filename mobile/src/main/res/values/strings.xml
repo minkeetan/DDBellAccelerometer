@@ -7,6 +7,7 @@
     <string name="start_capture">START</string>
     <string name="stop_capture">STOP</string>
     <string name="data_display">Data : </string>
+    <string name="wear_data_display">Wear Data : </string>
     <string name="data_format">| 0 | 0 | 0 |</string>
     
     <!--  BluetoothChat -->

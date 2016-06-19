@@ -297,7 +297,7 @@ public class BluetoothService {
 
         public void run() {
             Log.d(TAG, "Socket Type: " + mSocketType +
-                    "BEGIN mAcceptThread" + this);
+                    " BEGIN mAcceptThread " + this);
             setName("AcceptThread" + mSocketType);
 
             BluetoothSocket socket = null;
@@ -309,7 +309,7 @@ public class BluetoothService {
                     // successful connection or an exception
                     socket = mmServerSocket.accept();
                 } catch (IOException e) {
-                    Log.e(TAG, "Socket Type: " + mSocketType + "accept() failed", e);
+                    Log.e(TAG, "Socket Type: " + mSocketType + " accept() failed", e);
                     break;
                 }
 

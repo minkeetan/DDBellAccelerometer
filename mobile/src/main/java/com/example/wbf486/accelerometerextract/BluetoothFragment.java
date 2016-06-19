@@ -228,17 +228,21 @@ public class BluetoothFragment extends Fragment {
         }
     };
 
+		@Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.d(TAG, "On activity request: " + requestCode + " with result: " + resultCode);
         switch (requestCode) {
             case REQUEST_CONNECT_DEVICE_SECURE:
                 // When DeviceListActivity returns with a device to connect
                 if (resultCode == Activity.RESULT_OK) {
+                		Log.d(TAG, "Triggered connectDevice() - secure");
                     connectDevice(data, true);
                 }
                 break;
             case REQUEST_CONNECT_DEVICE_INSECURE:
                 // When DeviceListActivity returns with a device to connect
                 if (resultCode == Activity.RESULT_OK) {
+                		Log.d(TAG, "Triggered connectDevice() - insecure");
                     connectDevice(data, false);
                 }
                 break;
@@ -267,6 +271,7 @@ public class BluetoothFragment extends Fragment {
         // Get the device MAC address
         String address = data.getExtras()
                 .getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
+        Log.d(TAG, "Connecting to device MAC address: " + address);
         // Get the BluetoothDevice object
         BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
         // Attempt to connect to the device
@@ -283,18 +288,21 @@ public class BluetoothFragment extends Fragment {
         switch (item.getItemId()) {
             case R.id.secure_connect_scan: {
                 // Launch the DeviceListActivity to see devices and do scan
+                Log.d(TAG, "Options item selected: Secure connect");
                 Intent serverIntent = new Intent(getActivity(), DeviceListActivity.class);
-                startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE_SECURE);
+                getActivity().startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE_SECURE);
                 return true;
             }
             case R.id.insecure_connect_scan: {
                 // Launch the DeviceListActivity to see devices and do scan
+                Log.d(TAG, "Options item selected: Insecure connect");
                 Intent serverIntent = new Intent(getActivity(), DeviceListActivity.class);
-                startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE_INSECURE);
+                getActivity().startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE_INSECURE);
                 return true;
             }
             case R.id.discoverable: {
                 // Ensure this device is discoverable by others
+                Log.d(TAG, "Options item selected: Make discoverable");
                 ensureDiscoverable();
                 return true;
             }
