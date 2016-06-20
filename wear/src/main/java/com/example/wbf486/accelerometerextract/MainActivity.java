@@ -72,7 +72,6 @@ public class MainActivity extends AppCompatActivity implements
     
 		@Override
     public void onStop() {
-    		mSensorManager.unregisterListener(this);
     		super.onStop();
     }    
 
@@ -101,8 +100,14 @@ public class MainActivity extends AppCompatActivity implements
     		mTextView = (TextView) stub.findViewById(R.id.accWearData_id);
     		
     		mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);       		
-    }		   
-
+    }
+      
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    		mSensorManager.unregisterListener(this);
+    }
+    
     @Override
     public void onSensorChanged(SensorEvent event) {
         //Right in here is where you put code to read the current sensor values and
