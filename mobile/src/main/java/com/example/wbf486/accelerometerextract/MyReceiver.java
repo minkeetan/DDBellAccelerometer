@@ -20,12 +20,13 @@ public class MyReceiver extends BroadcastReceiver {
             Intent AccIntent = new Intent(context, MainService.class);
             if(intent.getAction().equalsIgnoreCase("android.intent.action.ACTION_SLIDER_ON_BUTTON_PRESSED")){
             		Log.i(TAG, "starting service from receiver...");
-                context.startService(AccIntent);
+            		AccIntent.setAction(MainService.ACTION_START_MAINSERVICE);
             }else{
             		Log.i(TAG, "stopping service from receiver...");
-                AccIntent.setAction(MainService.ACTION_END_SERVICE);
-                context.startService(AccIntent);
+                AccIntent.setAction(MainService.ACTION_END_MAINSERVICE);
             }
+            
+            context.startService(AccIntent);
         }
     }
 }

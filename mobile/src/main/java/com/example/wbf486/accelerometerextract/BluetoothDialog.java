@@ -68,7 +68,7 @@ public class BluetoothDialog extends Activity {
         // If the adapter is null, then Bluetooth is not supported
         if (mBluetoothAdapter == null) {
             myTextView.setText(R.string.bt_not_available_leaving);
-            notifyService(MainService.ACTION_END_SERVICE, null);
+            notifyService(MainService.ACTION_END_MAINSERVICE, null);
             finish();
         }
 		}
@@ -137,7 +137,7 @@ public class BluetoothDialog extends Activity {
                     // User did not enable Bluetooth or an error occurred
                     Log.d(TAG, "BT not enabled");
                     myTextView.setText(R.string.bt_not_enabled_leaving);
-                    notifyService(MainService.ACTION_END_SERVICE, null);
+                    notifyService(MainService.ACTION_END_MAINSERVICE, null);
                     finish();
                 }
                 break;

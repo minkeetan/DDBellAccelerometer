@@ -21,6 +21,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class MainService extends Service {
 		private static final String TAG = "MainService";	
@@ -29,8 +31,8 @@ public class MainService extends Service {
 		private ServiceHandler mServiceHandler;
 		private long lastUpdate = 0;
 		
-		public String gunShotFile = "GunShot.txt";
-		public String gunShotWearFile = "GunShotWear.txt";
+		public String gunShotFile;
+		public String gunShotWearFile;
 		
 		public MyAccelerometer mAccelero;
 		
@@ -44,7 +46,8 @@ public class MainService extends Service {
      */
     private BluetoothService mBTService = null;
 
-		static final String ACTION_END_SERVICE = "com.example.wbf486.accelerometerextract.ACTION_END_SERVICE";
+		static final String ACTION_START_MAINSERVICE = "com.example.wbf486.accelerometerextract.ACTION_START_MAINSERVICE";
+		static final String ACTION_END_MAINSERVICE = "com.example.wbf486.accelerometerextract.ACTION_END_MAINSERVICE";
 		static final String ACTION_INIT_BTSERVICE = "com.example.wbf486.accelerometerextract.ACTION_INIT_BTSERVICE";
 		static final String ACTION_CONNECT_DEVICE = "com.example.wbf486.accelerometerextract.ACTION_CONNECT_DEVICE";
 		static final String ACTION_START_BTSERVICE = "com.example.wbf486.accelerometerextract.ACTION_START_BTSERVICE";
@@ -121,21 +124,24 @@ public class MainService extends Service {
 		  	// Get the HandlerThread's Looper and use it for our Handler
 		  	mServiceLooper = thread.getLooper();
 		  	mServiceHandler = new ServiceHandler(mServiceLooper);
-		  	
-		  	Toast.makeText(this, "starting service...", Toast.LENGTH_SHORT).show();
 
-		  	mAccelero = new MyAccelerometer(this, mServiceHandler);
-		  	Intent dialogIntent = new Intent(this, BluetoothDialog.class);
-				dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-				startActivity(dialogIntent);
+				// Get the current date and time for the data capture file name
+		  	Date curDate = new Date();
+		  	SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd_hh:mm:ssa");
+		  	String DateToStr = format.format(curDate);
+
+				gunShotFile = DateToStr+".txt";
+				gunShotWearFile = DateToStr+"_wear.txt";
+
+		  	Toast.makeText(this, "starting service...", Toast.LENGTH_SHORT).show();
 		}
 		
 		@Override
 		public int onStartCommand(Intent intent, int flags, int startId) {		
 		    // For each start request, send a message to start a job and deliver the
 		    // start ID so we know which request we're stopping when we finish the job
-		    Message msg = mServiceHandler.obtainMessage();
-		    msg.arg1 = startId;
+		    //Message msg = mServiceHandler.obtainMessage();
+		    //msg.arg1 = startId;
 		    //mServiceHandler.sendMessage(msg);
 
 				if (intent != null) {
@@ -144,7 +150,14 @@ public class MainService extends Service {
 		            switch (action) {
 		                //handleData(intent.getParcelableExtra(EXTRA_DATA));
 		                // Implement your handleData method. Remember not to confuse Intents, or even better make your own Parcelable
-		                case ACTION_END_SERVICE:
+		                case ACTION_START_MAINSERVICE:
+		                		//Start the main service
+										  	mAccelero = new MyAccelerometer(this, mServiceHandler);
+										  	Intent dialogIntent = new Intent(this, BluetoothDialog.class);
+												dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+												startActivity(dialogIntent);
+		                    break;		                
+		                case ACTION_END_MAINSERVICE:
 		                		//End the main service
 		                    stopSelf(startId);
 		                    break;
@@ -194,6 +207,9 @@ public class MainService extends Service {
 		@Override
 		public void onDestroy() {
 				Toast.makeText(this, "service done", Toast.LENGTH_SHORT).show();
+        if (mBTService != null) {
+            mBTService.stop();
+        }				
 		}
 		
 		public void printAccelerometerData(String accData, String accFile) {
