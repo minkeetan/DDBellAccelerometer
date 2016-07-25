@@ -1,28 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.wbf486.accelerometerextract">
-
+    
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity
-            android:name=".MainActivity"
-            android:screenOrientation="portrait">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-
-                <action android:name="com.google.android.gms.wearable.BIND_LISTENER" />
-            </intent-filter>
-        </activity>
 
         <receiver android:name=".MyReceiver">
             <intent-filter>
@@ -30,11 +20,22 @@
                 <action android:name="android.intent.action.ACTION_SLIDER_ON_BUTTON_PRESSED" />
             </intent-filter>
         </receiver>
-
-        <service
-            android:name=".MyService"
+       
+        <service 
+        		android:name=".MainService"
             android:enabled="true"
-            android:exported="true"></service>
+            android:exported="true"/>
+
+        <activity
+            android:name=".DeviceListActivity"
+            android:label="@string/select_device"
+            android:theme="@android:style/Theme.Holo.Dialog"/>
+         
+         <activity 
+         		android:name=".BluetoothDialog"
+         		android:label="@string/bt_dialog"
+         		android:theme="@android:style/Theme.Dialog"/>
+            
     </application>
 
 </manifest>

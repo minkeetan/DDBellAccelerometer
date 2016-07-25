@@ -1,5 +1,15 @@
 <resources>
     <string name="app_name">AccelerometerExtract</string>
-    <string name="hello_round">Hello Round World!</string>
-    <string name="hello_square">Hello Square World!</string>
+    <string name="wear_data_display">Wear Data : </string>
+    <string name="data_format">| 0 | 0 | 0 |</string>
+    
+    <!--  BluetoothFragment -->
+    <string name="not_connected">You are not connected to a device</string>
+    <string name="bt_not_enabled_leaving">Bluetooth was not enabled. Leaving Bluetooth Chat.</string>
+    <string name="title_connecting">connecting...</string>
+    <string name="title_connected_to">connected to &lt;xliff:g id="device_name"&gt;%1$s&lt;/xliff:g&gt;</string>
+    <string name="title_not_connected">not connected</string>
+
+    <!-- Options Menu -->
+    <string name="discoverable">Make discoverable</string>    
 </resources>
