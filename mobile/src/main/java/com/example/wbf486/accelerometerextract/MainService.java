@@ -133,7 +133,7 @@ public class MainService extends Service {
 				gunShotFile = DateToStr+".txt";
 				gunShotWearFile = DateToStr+"_wear.txt";
 
-		  	Toast.makeText(this, "starting service...", Toast.LENGTH_SHORT).show();
+		  	Toast.makeText(this, "starting Accelerometer service...", Toast.LENGTH_SHORT).show();
 		}
 		
 		@Override
@@ -206,7 +206,7 @@ public class MainService extends Service {
 		
 		@Override
 		public void onDestroy() {
-				Toast.makeText(this, "service done", Toast.LENGTH_SHORT).show();
+				Toast.makeText(this, "Accelerometer service done", Toast.LENGTH_SHORT).show();
         if (mBTService != null) {
             mBTService.stop();
         }				
