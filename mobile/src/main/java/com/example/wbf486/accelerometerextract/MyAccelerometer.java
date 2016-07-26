@@ -24,11 +24,22 @@ public class MyAccelerometer implements SensorEventListener {
     		mHandler = handler;
         mSensorManager = (SensorManager) service.getSystemService(Context.SENSOR_SERVICE);
         //mAccelerometer = mSensorManager.getSensorList(Sensor.TYPE_ACCELEROMETER).get(0);
-        if( (mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)) != null ) {
+        //if( (mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)) != null ) {
 				  // Success! There's a accelerometer.
-				  mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL, handler);
-				}
+				  //mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL, handler);
+				//}
      }
+
+    public void startCapture(){
+        if( (mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)) != null ) {
+            // Success! There's a accelerometer.
+            mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+    }
+
+    public void stopCapture(){
+        mSensorManager.unregisterListener(this);
+    }
 
     public float getX(){
         return this.xAxis;

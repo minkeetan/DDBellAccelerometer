@@ -145,20 +145,22 @@ public class MainService extends Service {
 		    //mServiceHandler.sendMessage(msg);
 
 				if (intent != null) {
-		        final String action = intent.getAction();
+		        	final String action = intent.getAction();
+					mAccelero = new MyAccelerometer(this, mServiceHandler);
 		        if (action != null) {
 		            switch (action) {
 		                //handleData(intent.getParcelableExtra(EXTRA_DATA));
 		                // Implement your handleData method. Remember not to confuse Intents, or even better make your own Parcelable
 		                case ACTION_START_MAINSERVICE:
 		                		//Start the main service
-										  	mAccelero = new MyAccelerometer(this, mServiceHandler);
+										  	mAccelero.startCapture();
 										  	Intent dialogIntent = new Intent(this, BluetoothDialog.class);
 												dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 												startActivity(dialogIntent);
 		                    break;		                
 		                case ACTION_END_MAINSERVICE:
 		                		//End the main service
+							mAccelero.stopCapture();
 		                    stopSelf(startId);
 		                    break;
 		                case ACTION_INIT_BTSERVICE:
