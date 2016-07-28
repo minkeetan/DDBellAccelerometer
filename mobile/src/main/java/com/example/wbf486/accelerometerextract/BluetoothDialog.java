@@ -86,6 +86,7 @@ public class BluetoothDialog extends Activity {
 						// Launch the DeviceListActivity to see devices and do scan
 						Log.d(TAG, "Launch the DeviceListActivity: Secure connect");
 						Intent serverIntent = new Intent(this, DeviceListActivity.class);
+						serverIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 						startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE_SECURE);	
         }
     }		
@@ -132,6 +133,7 @@ public class BluetoothDialog extends Activity {
         						// Launch the DeviceListActivity to see devices and do scan
 										Log.d(TAG, "Launch the DeviceListActivity: Secure connect");
 										Intent serverIntent = new Intent(this, DeviceListActivity.class);
+										serverIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 										startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE_SECURE);	
                 } else {
                     // User did not enable Bluetooth or an error occurred

@@ -66,18 +66,18 @@ public class MainService extends Service {
                 case Constants.MESSAGE_STATE_CHANGE:
                     switch (msg.arg1) {
                         case BluetoothService.STATE_CONNECTED:
-                            Log.d(TAG, "Connected to id=" + mConnectedDeviceName);
+                            Log.d(TAG, getResources().getString(R.string.title_connected_to, mConnectedDeviceName));
 														LocalBroadcastManager localBroadcastManager = LocalBroadcastManager
 										                .getInstance(myService);
 										        localBroadcastManager.sendBroadcast(new Intent(
 										                BluetoothDialog.ACTION_CLOSE));
                             break;
                         case BluetoothService.STATE_CONNECTING:
-                            Log.d(TAG, "Connecting...");
+                            Log.d(TAG, getResources().getString(R.string.title_connecting));
                             break;
                         case BluetoothService.STATE_LISTEN:
                         case BluetoothService.STATE_NONE:
-                            Log.d(TAG, "Not connected");
+                            Log.d(TAG, getResources().getString(R.string.title_not_connected));
                             break;
                     }
                     break;
@@ -97,7 +97,7 @@ public class MainService extends Service {
                     // save the connected device's name
                     mConnectedDeviceName = msg.getData().getString(Constants.DEVICE_NAME);
                     if (null != myService) {
-                        Toast.makeText(myService, "Connected to " + mConnectedDeviceName, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(myService, getResources().getString(R.string.title_connected_to, mConnectedDeviceName), Toast.LENGTH_SHORT).show();
                     }
                     break;
                 case Constants.MESSAGE_TOAST:
@@ -125,6 +125,8 @@ public class MainService extends Service {
 		  	mServiceLooper = thread.getLooper();
 		  	mServiceHandler = new ServiceHandler(mServiceLooper);
 
+		  	mAccelero = new MyAccelerometer(this, mServiceHandler);
+
 				// Get the current date and time for the data capture file name
 		  	Date curDate = new Date();
 		  	SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd_hh:mm:ssa");
@@ -146,7 +148,6 @@ public class MainService extends Service {
 
 				if (intent != null) {
 		        	final String action = intent.getAction();
-					mAccelero = new MyAccelerometer(this, mServiceHandler);
 		        if (action != null) {
 		            switch (action) {
 		                //handleData(intent.getParcelableExtra(EXTRA_DATA));
@@ -156,11 +157,12 @@ public class MainService extends Service {
 										  	mAccelero.startCapture();
 										  	Intent dialogIntent = new Intent(this, BluetoothDialog.class);
 												dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+												dialogIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 												startActivity(dialogIntent);
 		                    break;		                
 		                case ACTION_END_MAINSERVICE:
 		                		//End the main service
-							mAccelero.stopCapture();
+		                		mAccelero.stopCapture();
 		                    stopSelf(startId);
 		                    break;
 		                case ACTION_INIT_BTSERVICE:

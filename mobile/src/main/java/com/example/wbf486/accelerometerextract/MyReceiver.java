@@ -17,9 +17,15 @@ public class MyReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.i(TAG, "calling onREceive");
-        if (intent.getAction().equalsIgnoreCase("android.intent.action.ACTION_VOLUME_UP_BUTTON_PRESSED") || intent.getAction().equalsIgnoreCase("android.intent.action.ACTION_VOLUME_DOWN_BUTTON_PRESSED")) {
+        if (intent.getAction().equalsIgnoreCase("android.intent.action.ACTION_VOLUME_UP_BUTTON_PRESSED") || 
+        		intent.getAction().equalsIgnoreCase("android.intent.action.ACTION_VOLUME_DOWN_BUTTON_PRESSED") ||
+        		intent.getAction().equalsIgnoreCase("android.intent.action.ACTION_SLIDER_ON_BUTTON_PRESSED") || 
+        		intent.getAction().equalsIgnoreCase("android.intent.action.ACTION_SLIDER_OFF_BUTTON_PRESSED")) {
             Intent AccIntent = new Intent(context, MainService.class);
-            if(intent.getAction().equalsIgnoreCase("android.intent.action.ACTION_VOLUME_UP_BUTTON_PRESSED")){
+            
+            if(intent.getAction().equalsIgnoreCase("android.intent.action.ACTION_SLIDER_ON_BUTTON_PRESSED") || 
+            	intent.getAction().equalsIgnoreCase("android.intent.action.ACTION_VOLUME_UP_BUTTON_PRESSED")){
+            
             		Log.i(TAG, "starting service from receiver...");
             		AccIntent.setAction(MainService.ACTION_START_MAINSERVICE);
             }else{
