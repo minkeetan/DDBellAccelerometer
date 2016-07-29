@@ -154,11 +154,10 @@ public class MainService extends Service {
 		                // Implement your handleData method. Remember not to confuse Intents, or even better make your own Parcelable
 		                case ACTION_START_MAINSERVICE:
 		                		//Start the main service
-										  	mAccelero.startCapture();
-										  	Intent dialogIntent = new Intent(this, BluetoothDialog.class);
-												dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-												dialogIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-												startActivity(dialogIntent);
+		                		mAccelero.startCapture();
+		                		Intent dialogIntent = new Intent(this, BluetoothDialog.class);
+		                		dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);;
+		                		startActivity(dialogIntent);
 		                    break;		                
 		                case ACTION_END_MAINSERVICE:
 		                		//End the main service
@@ -167,7 +166,7 @@ public class MainService extends Service {
 		                    break;
 		                case ACTION_INIT_BTSERVICE:
 		                		if(mBTService == null) {
-		                				//Initialize the BluetoothService to perform bluetooth connections
+		                    		//Initialize the BluetoothService to perform bluetooth connections
 		                    		mBTService = new BluetoothService(null, mServiceHandler);
 		                    }
 		                    break;
@@ -176,21 +175,21 @@ public class MainService extends Service {
 		                		if(extraData != null) {
 		                				// Get the device MAC address
 		                				String address = extraData.getExtras().getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
-        										Log.d(TAG, "Connecting to device MAC address: " + address);
+		                    		Log.d(TAG, "Connecting to device MAC address: " + address);
         										
-        										// Get the BluetoothDevice object
-        										BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
+		                    		// Get the BluetoothDevice object
+		                    		BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
         										
-        										// Attempt to connect to the device
-        										mBTService.connect(device, true);
+		                    		// Attempt to connect to the device
+		                    		mBTService.connect(device, true);
 		                		}
 		                    break;
 		                case ACTION_START_BTSERVICE:
 		                		if(mBTService != null) {
 								            // Only if the state is STATE_NONE, do we know that we haven't started already
 								            if (mBTService.getState() == BluetoothService.STATE_NONE) {
-								                // Start the Bluetooth chat services
-								                mBTService.start();
+		                    				// Start the Bluetooth chat services
+		                    				mBTService.start();
 								            }
 		                    }
 		                    break;		                    
