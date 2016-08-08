@@ -129,7 +129,7 @@ public class MainService extends Service {
 
 				// Get the current date and time for the data capture file name
 		  	Date curDate = new Date();
-		  	SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd_hh:mm:ssa");
+		  	SimpleDateFormat format = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ssa");
 		  	String DateToStr = format.format(curDate);
 
 				gunShotFile = DateToStr+".txt";
@@ -220,8 +220,13 @@ public class MainService extends Service {
         String state = Environment.getExternalStorageState();
         if (Environment.MEDIA_MOUNTED.equals(state))
         {
+			String secondStore = System.getenv("SECONDARY_STORAGE");
+
             File file;
-            File path = new File(Environment.getExternalStorageDirectory().getAbsolutePath()+"/MotoGunShot");
+            //File path = new File(Environment.getExternalStorageDirectory().getAbsolutePath()+"/../storage/sdcard1/MotoGunShot");
+			File path = new File(secondStore + "/MotoGunShot/");
+			Log.i(TAG, "printAccelerometerData: " + path);
+
             path.mkdirs();
             // Link the filename with the input text
             if(accFile.indexOf( ".txt" ) == -1) {
