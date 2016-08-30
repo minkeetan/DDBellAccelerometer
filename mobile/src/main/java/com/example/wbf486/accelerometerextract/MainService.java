@@ -22,10 +22,12 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 
 public class MainService extends Service {
-		private static final String TAG = "MainService";	
+		private static final String TAG = "MainService";
 		
 		private Looper mServiceLooper;
 		private ServiceHandler mServiceHandler;
@@ -51,7 +53,11 @@ public class MainService extends Service {
 		static final String ACTION_INIT_BTSERVICE = "com.example.wbf486.accelerometerextract.ACTION_INIT_BTSERVICE";
 		static final String ACTION_CONNECT_DEVICE = "com.example.wbf486.accelerometerextract.ACTION_CONNECT_DEVICE";
 		static final String ACTION_START_BTSERVICE = "com.example.wbf486.accelerometerextract.ACTION_START_BTSERVICE";
+		static final String ACTION_START_CAPTURE = "com.example.wbf486.accelerometerextract.ACTION_START_CAPTURE";
+		static final String ACTION_STOP_CAPTURE = "com.example.wbf486.accelerometerextract.ACTION_STOP_CAPTURE";
 		static final String EXTRA_DATA = "com.example.wbf486.accelerometerextract.EXTRA_DATA";
+
+		static boolean DataCaptureEnabled = false;
 
 		// Handler that receives messages from the thread
 		private final class ServiceHandler extends Handler {      
@@ -91,7 +97,9 @@ public class MainService extends Service {
                     byte[] readBuf = (byte[]) msg.obj;
                     // construct a string from the valid bytes in the buffer
                     String readMessage = new String(readBuf, 0, msg.arg1);
-                    printAccelerometerData(readMessage, gunShotWearFile);
+					if(DataCaptureEnabled){
+						printAccelerometerData(readMessage, gunShotWearFile);
+					}
                     break;
                 case Constants.MESSAGE_DEVICE_NAME:
                     // save the connected device's name
@@ -105,9 +113,11 @@ public class MainService extends Service {
                         Toast.makeText(myService, msg.getData().getString(Constants.TOAST), Toast.LENGTH_SHORT).show();
                     }
                     break;
-								case Constants.MESSAGE_ACCELEROMETER_DATA:
-										printAccelerometerData((String)msg.obj, gunShotFile);
-										break;
+				case Constants.MESSAGE_ACCELEROMETER_DATA:
+					if(DataCaptureEnabled) {
+						printAccelerometerData((String) msg.obj, gunShotFile);
+					}
+					break;
 		        }		          
 		    }
 		}
@@ -126,16 +136,6 @@ public class MainService extends Service {
 		  	mServiceHandler = new ServiceHandler(mServiceLooper);
 
 		  	mAccelero = new MyAccelerometer(this, mServiceHandler);
-
-				// Get the current date and time for the data capture file name
-		  	Date curDate = new Date();
-		  	SimpleDateFormat format = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ssa");
-		  	String DateToStr = format.format(curDate);
-
-				gunShotFile = DateToStr+".txt";
-				gunShotWearFile = DateToStr+"_wear.txt";
-
-		  	Toast.makeText(this, "starting Accelerometer service...", Toast.LENGTH_SHORT).show();
 		}
 		
 		@Override
@@ -154,14 +154,13 @@ public class MainService extends Service {
 		                // Implement your handleData method. Remember not to confuse Intents, or even better make your own Parcelable
 		                case ACTION_START_MAINSERVICE:
 		                		//Start the main service
-		                		mAccelero.startCapture();
 		                		Intent dialogIntent = new Intent(this, BluetoothDialog.class);
-		                		dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);;
+		                		dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+								Log.i(TAG, "Start main service");
 		                		startActivity(dialogIntent);
 		                    break;		                
 		                case ACTION_END_MAINSERVICE:
 		                		//End the main service
-		                		mAccelero.stopCapture();
 		                    stopSelf(startId);
 		                    break;
 		                case ACTION_INIT_BTSERVICE:
@@ -192,7 +191,35 @@ public class MainService extends Service {
 		                    				mBTService.start();
 								            }
 		                    }
-		                    break;		                    
+		                    break;
+						case ACTION_START_CAPTURE:
+							//Start the accelerometer capture
+							Toast.makeText(this, "start capturing Acclerometer data ...", Toast.LENGTH_SHORT).show();
+							// Get the current date and time for the data capture file name
+							Date curDate = new Date();
+							Calendar calendar = new GregorianCalendar();
+
+							int millisecond= calendar.get(Calendar.MILLISECOND);
+							Log.i(TAG, "milisecond = " + millisecond);
+
+							SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd_hhmmss." + millisecond);
+							String DateToStr = format.format(curDate);
+
+							gunShotFile = "ACC_" + DateToStr+".txt";
+							gunShotWearFile = "ACC_" + DateToStr+"_wear.txt";
+
+							DataCaptureEnabled = true;
+
+							mAccelero.startCapture();
+							break;
+						case ACTION_STOP_CAPTURE:
+							//Stop the accelerometer capture
+							Toast.makeText(this, "stop capturing Acclerometer data ...", Toast.LENGTH_SHORT).show();
+
+							DataCaptureEnabled = false;
+
+							mAccelero.stopCapture();
+							break;
 		            }
 		        }
 		    }
@@ -224,7 +251,7 @@ public class MainService extends Service {
             File file;
             //File path = new File(Environment.getExternalStorageDirectory().getAbsolutePath()+"/../storage/sdcard1/MotoGunShot");
 			File path = new File(secondStore + "/MotoGunShot/");
-			Log.i(TAG, "printAccelerometerData: " + path);
+			//Log.i(TAG, "printAccelerometerData: " + path);
 
             path.mkdirs();
             // Link the filename with the input text

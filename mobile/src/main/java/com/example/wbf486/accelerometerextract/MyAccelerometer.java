@@ -16,6 +16,8 @@ public class MyAccelerometer implements SensorEventListener {
     private float yAxis;
     private float zAxis;
 
+    private final static int SAMPLING_RATE = 5;
+
     SensorManager mSensorManager;
     Sensor mAccelerometer;
     Handler mHandler;
@@ -67,7 +69,7 @@ public class MyAccelerometer implements SensorEventListener {
 				
 				long curTime = System.currentTimeMillis();
 
-        if ((curTime - lastUpdate) > 100) {
+        if ((curTime - lastUpdate) > SAMPLING_RATE) {
             lastUpdate = curTime;
             String accStr = " | " + xAxis + " | " + yAxis + " | " + zAxis + " | \n";
 						mHandler.obtainMessage(Constants.MESSAGE_ACCELEROMETER_DATA, accStr).sendToTarget();
