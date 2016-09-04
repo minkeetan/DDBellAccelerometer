@@ -16,7 +16,7 @@ import android.app.DialogFragment;
 import android.content.Intent;
 import android.content.DialogInterface;
 import android.content.IntentSender.SendIntentException;
-
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -31,16 +31,20 @@ public class MainActivity extends AppCompatActivity implements
 		WatchViewStub.OnLayoutInflatedListener {
 
     private TextView mTextView;
+    private int mAccMinDelay;
     
     private boolean mBTStateConnected = false;
     
     private SensorManager mSensorManager;
     private Sensor mAccelerometer;
-    private long lastUpdate = 0;
     private float x, y, z;
     private File mAccelerometerDataFile;  
 
 		private BluetoothFragment mBTFragment;
+
+		private float[] gravityV = new float[3];
+		
+		private long lastUpdate = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,8 +58,10 @@ public class MainActivity extends AppCompatActivity implements
 				if (mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null) {
 				  // Success! There's a accelerometer.
 				  mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-				  if (mAccelerometer.getMinDelay() != 0) {
+				  mAccMinDelay = mAccelerometer.getMinDelay();
+				  if (mAccMinDelay != 0) {
 				  	//this is a streaming sensor
+				  	//Toast.makeText(this, "Acc min delay: " + minDelay + "us", Toast.LENGTH_SHORT).show();
 				  }
 				}
 				else {
@@ -99,7 +105,10 @@ public class MainActivity extends AppCompatActivity implements
     		
     		mTextView = (TextView) stub.findViewById(R.id.accWearData_id);
     		
-    		mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);       		
+    		String accStr = " Acc min delay is " + mAccMinDelay + "us";
+        mTextView.setText(accStr);
+    		
+    		mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_FASTEST);       		
     }
       
     @Override
@@ -113,40 +122,34 @@ public class MainActivity extends AppCompatActivity implements
         //Right in here is where you put code to read the current sensor values and
         //update any views you might have that are displaying the sensor information
         //You'd get accelerometer values like this:
-        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER){
+        //if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER){
             x = event.values[0];
             y = event.values[1];
             z = event.values[2];
-        }
+        //}
 
-        long curTime = System.currentTimeMillis();
+				//final float alpha = 0.8f;
+				////gravity is calculated here
+				//gravityV[0] = alpha * gravityV[0] + (1 - alpha) * event.values[0];
+				//gravityV[1] = alpha * gravityV[1] + (1 - alpha)* event.values[1];
+				//gravityV[2] = alpha * gravityV[2] + (1 - alpha) * event.values[2];
+				////acceleration retrieved from the event and the gravity is removed
+				//x = event.values[0] - gravityV[0];
+				//y = event.values[1] - gravityV[1];
+				//z = event.values[2] - gravityV[2];
 
-        if ((curTime - lastUpdate) > 100) {
-            long diffTime = (curTime - lastUpdate);
-            lastUpdate = curTime;
+        String accStr = " | " + x + " | " + y + " | " + z + " | \n";
+        //mTextView.setText(accStr);
 
-            String accStr = " | " + x + " | " + y + " | " + z + " | \n";
-            mTextView.setText(accStr);
-            
-            // save the data in a file, sample at 1/50ms
-            File path = this.getFilesDir();
-            mAccelerometerDataFile = new File(path, "MyAccelerometerWearData.txt");
+				long curTime = System.currentTimeMillis();
+				long period = curTime - lastUpdate;
+				lastUpdate = curTime;
+				
+				String tmpStr = period + "ms" + accStr;
 
-            try {
-                FileOutputStream stream = new FileOutputStream(mAccelerometerDataFile, true);
-                stream.write(accStr.getBytes());
-                stream.flush();
-                stream.close();
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            
-            //send the accelerometer data to mobile app via BT connection
-            if( (mBTFragment != null) && (mBTStateConnected == true) ) {
-            		mBTFragment.sendMessage(accStr);
-            }        
+        //send the accelerometer data to mobile app via BT connection
+        if( (mBTFragment != null) && (mBTStateConnected == true) ) {
+            mBTFragment.sendMessage(tmpStr);
         }
     }
 

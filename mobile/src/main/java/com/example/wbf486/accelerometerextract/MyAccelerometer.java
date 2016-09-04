@@ -10,14 +10,14 @@ import android.hardware.SensorManager;
 
 public class MyAccelerometer implements SensorEventListener {
 
-		private long lastUpdate = 0;
-
     private float xAxis;
     private float yAxis;
     private float zAxis;
 
-    private final static int SAMPLING_RATE = 5;
-
+    private float[] gravityV = new float[3];
+    
+    private long lastUpdate = 0;
+    
     SensorManager mSensorManager;
     Sensor mAccelerometer;
     Handler mHandler;
@@ -25,18 +25,21 @@ public class MyAccelerometer implements SensorEventListener {
     public MyAccelerometer(Service service, Handler handler) {
     		mHandler = handler;
         mSensorManager = (SensorManager) service.getSystemService(Context.SENSOR_SERVICE);
-        //mAccelerometer = mSensorManager.getSensorList(Sensor.TYPE_ACCELEROMETER).get(0);
-        //if( (mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)) != null ) {
+        if (mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null) {
 				  // Success! There's a accelerometer.
-				  //mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL, handler);
-				//}
+				  mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+				}
+				else {
+				  // Failure! No accelerometer.
+				}
      }
 
+		public int getAccMinDelay(){
+				return mAccelerometer.getMinDelay();
+		}
+
     public void startCapture(){
-        if( (mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)) != null ) {
-            // Success! There's a accelerometer.
-            mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
-        }
+        mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_FASTEST, mHandler);
     }
 
     public void stopCapture(){
@@ -61,19 +64,31 @@ public class MyAccelerometer implements SensorEventListener {
     }
 
     public void onSensorChanged(SensorEvent event) {
-				if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER){
+				//if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER){
 						xAxis = event.values[0];
 						yAxis = event.values[1];
 						zAxis = event.values[2];
-				}
+				//}
+
+				//final float alpha = 0.8f;
+				////gravity is calculated here
+				//gravityV[0] = alpha * gravityV[0] + (1 - alpha) * event.values[0];
+				//gravityV[1] = alpha * gravityV[1] + (1 - alpha)* event.values[1];
+				//gravityV[2] = alpha * gravityV[2] + (1 - alpha) * event.values[2];
+				////acceleration retrieved from the event and the gravity is removed
+				//xAxis = event.values[0] - gravityV[0];
+				//yAxis = event.values[1] - gravityV[1];
+				//zAxis = event.values[2] - gravityV[2];
+							
+				String accStr = " | " + xAxis + " | " + yAxis + " | " + zAxis + " | \n";
 				
 				long curTime = System.currentTimeMillis();
-
-        if ((curTime - lastUpdate) > SAMPLING_RATE) {
-            lastUpdate = curTime;
-            String accStr = " | " + xAxis + " | " + yAxis + " | " + zAxis + " | \n";
-						mHandler.obtainMessage(Constants.MESSAGE_ACCELEROMETER_DATA, accStr).sendToTarget();
-				}
+				long period = curTime - lastUpdate;
+				lastUpdate = curTime;
+				
+				String tmpStr = period + "ms" + accStr;
+		
+				mHandler.obtainMessage(Constants.MESSAGE_ACCELEROMETER_DATA, tmpStr).sendToTarget();
     }
 
 }
