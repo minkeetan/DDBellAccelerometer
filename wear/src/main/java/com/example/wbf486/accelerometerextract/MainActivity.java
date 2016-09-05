@@ -123,33 +123,32 @@ public class MainActivity extends AppCompatActivity implements
         //update any views you might have that are displaying the sensor information
         //You'd get accelerometer values like this:
         //if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER){
-            x = event.values[0];
-            y = event.values[1];
-            z = event.values[2];
+        //    x = event.values[0];
+        //    y = event.values[1];
+        //    z = event.values[2];
         //}
 
-				//final float alpha = 0.8f;
-				////gravity is calculated here
-				//gravityV[0] = alpha * gravityV[0] + (1 - alpha) * event.values[0];
-				//gravityV[1] = alpha * gravityV[1] + (1 - alpha)* event.values[1];
-				//gravityV[2] = alpha * gravityV[2] + (1 - alpha) * event.values[2];
-				////acceleration retrieved from the event and the gravity is removed
-				//x = event.values[0] - gravityV[0];
-				//y = event.values[1] - gravityV[1];
-				//z = event.values[2] - gravityV[2];
+				final float alpha = 0.8f;
+				//gravity is calculated here
+				gravityV[0] = alpha * gravityV[0] + (1 - alpha) * event.values[0];
+				gravityV[1] = alpha * gravityV[1] + (1 - alpha)* event.values[1];
+				gravityV[2] = alpha * gravityV[2] + (1 - alpha) * event.values[2];
+				//acceleration retrieved from the event and the gravity is removed
+				x = event.values[0] - gravityV[0];
+				y = event.values[1] - gravityV[1];
+				z = event.values[2] - gravityV[2];
 
         String accStr = " | " + x + " | " + y + " | " + z + " | \n";
         //mTextView.setText(accStr);
 
-				long curTime = System.currentTimeMillis();
-				long period = curTime - lastUpdate;
-				lastUpdate = curTime;
-				
-				String tmpStr = period + "ms" + accStr;
+				//long curTime = System.currentTimeMillis();
+				//long period = curTime - lastUpdate;
+				//lastUpdate = curTime;
+				//String tmpStr = period + "ms" + accStr;
 
         //send the accelerometer data to mobile app via BT connection
         if( (mBTFragment != null) && (mBTStateConnected == true) ) {
-            mBTFragment.sendMessage(tmpStr);
+            mBTFragment.sendMessage(accStr);
         }
     }
 

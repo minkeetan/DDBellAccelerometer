@@ -34,12 +34,13 @@ public class MainService extends Service {
 		private Looper mServiceLooper;
 		private ServiceHandler mServiceHandler;
 
-		//private Looper mTimerLooper;
-		//private TimerHandler mTimerHandler;
-		//private static Timer mAccTimer = new Timer();
-		
-		//public static final int TIMER_5MS = 5;
-		//private long lastUpdate = 0;
+		//Method 1 - start
+		private Looper mTimerLooper;
+		private TimerHandler mTimerHandler;
+		private static Timer mAccTimer = new Timer();
+		public static final int TIMER_5MS = 5;
+		private long lastUpdate = 0;
+		//Method 1 - end
 		
 		public String tmpGunShotData = " | 0 | 0 | 0 | \n";
 		public String tmpGunShotWearData = " | 0 | 0 | 0 | \n";
@@ -50,7 +51,7 @@ public class MainService extends Service {
 		public MyAccelerometer mAccelero;
 		
 		static boolean mDataCaptureConnected = false;
-		static boolean mDataCapture = false;
+		//static boolean mDataCapture = false;
 		
     /**
      * Name of the connected device
@@ -71,29 +72,29 @@ public class MainService extends Service {
 		static final String ACTION_STOP_CAPTURE = "com.example.wbf486.accelerometerextract.ACTION_STOP_CAPTURE";
 		static final String EXTRA_DATA = "com.example.wbf486.accelerometerextract.EXTRA_DATA";
 
-		//Method 1:
+		//Method 1 - start
 		//Handling timer via a separate Handler using TimerTask - better performance
-		//private final class TimerHandler extends Handler {      
-		//    public TimerHandler(Looper looper) {
-		//        super(looper);
-		//    }
-		//    
-		//    @Override
-		//    public void handleMessage(Message msg) {
-		//				handleTimeOut();
-		//    }
-		//}
-    //
-    //private class accTimerTask extends TimerTask
-    //{ 
-    //    public void run() 
-    //    {
-    //        //mServiceHandler.obtainMessage(Constants.MESSAGE_TIMER_EXPIRED);
-    //        mTimerHandler.sendEmptyMessage(0);
-    //    }
-    //}
+		private final class TimerHandler extends Handler {      
+		    public TimerHandler(Looper looper) {
+		        super(looper);
+		    }
+		    
+		    @Override
+		    public void handleMessage(Message msg) {
+						handleTimeOut();
+		    }
+		}
+    
+    private class accTimerTask extends TimerTask
+    { 
+        public void run() 
+        {
+            mTimerHandler.sendEmptyMessage(0);
+        }
+    }
+    //Method 1 - end
 
-		//Method 2:
+		//Method 2 - start
 		//Handling timer via a separate Runnable via triggering postDelayed() within itself - slow performance
 		//private Handler mTimerHandler = new Handler();
     //private Runnable mTimerRunnable = new Runnable() {
@@ -106,6 +107,7 @@ public class MainService extends Service {
 		//	      mTimerHandler.postDelayed(this, TIMER_5MS);
     //    }
     //};
+    //Method 2 - end
 
 		// Handler that receives messages from the thread
 		private final class ServiceHandler extends Handler {      
@@ -145,10 +147,10 @@ public class MainService extends Service {
                     byte[] readBuf = (byte[]) msg.obj;
                     // construct a string from the valid bytes in the buffer
                     String readMessage = new String(readBuf, 0, msg.arg1);
-                    //tmpGunShotWearData = readMessage;
-                    if(true == mDataCapture) {
-                    		printAccelerometerData(readMessage, gunShotWearFile);
-                    }
+                    tmpGunShotWearData = readMessage; //Method 1 & 2
+                    //if(true == mDataCapture) {
+                    //		printAccelerometerData(readMessage, gunShotWearFile);
+                    //}
                     break;
                 case Constants.MESSAGE_DEVICE_NAME:
                     // save the connected device's name
@@ -163,10 +165,10 @@ public class MainService extends Service {
                     }
                     break;
                 case Constants.MESSAGE_ACCELEROMETER_DATA:
-                    //tmpGunShotData = (String) msg.obj;
-										if(true == mDataCapture) {
-                    		printAccelerometerData((String) msg.obj, gunShotFile);
-                  	}
+                    tmpGunShotData = (String) msg.obj; //Method 1 & 2
+										//if(true == mDataCapture) {
+                    //		printAccelerometerData((String) msg.obj, gunShotFile);
+                  	//}
                     break;                    
 		        }		          
 		    }
@@ -188,10 +190,12 @@ public class MainService extends Service {
 		  	mAccelero = new MyAccelerometer(this, mServiceHandler);
 				mAccelero.startCapture();
 		  	
-		  	//HandlerThread timer_thread = new HandlerThread("AccelerometerTimerThread", Process.THREAD_PRIORITY_MORE_FAVORABLE);
-		  	//timer_thread.start();
-		  	//mTimerLooper = timer_thread.getLooper();
-		  	//mTimerHandler = new TimerHandler(mTimerLooper);
+		  	//Method 1 - start
+		  	HandlerThread timer_thread = new HandlerThread("AccelerometerTimerThread", Process.THREAD_PRIORITY_MORE_FAVORABLE);
+		  	timer_thread.start();
+		  	mTimerLooper = timer_thread.getLooper();
+		  	mTimerHandler = new TimerHandler(mTimerLooper);
+		  	//Method 1 - end
 		}
 		
 		@Override
@@ -266,9 +270,9 @@ public class MainService extends Service {
 														gunShotFile = "ACC_" + DateToStr+".txt";
 														gunShotWearFile = "ACC_" + DateToStr+"_wear.txt";
 							
-														mDataCapture = true;
-														//mAccTimer.scheduleAtFixedRate(new accTimerTask(), 0, TIMER_5MS);
-														//mTimerHandler.postDelayed(mTimerRunnable, TIMER_5MS);
+														//mDataCapture = true;
+														mAccTimer.scheduleAtFixedRate(new accTimerTask(), 0, TIMER_5MS); //Method 1
+														//mTimerHandler.postDelayed(mTimerRunnable, TIMER_5MS); //Method 2
 												}
 												break;
 										case ACTION_STOP_CAPTURE:
@@ -277,9 +281,9 @@ public class MainService extends Service {
 														//Stop the accelerometer capture
 														Toast.makeText(this, "stop capturing Acclerometer data ...", Toast.LENGTH_SHORT).show();
 							
-														mDataCapture = false;
-														//mAccTimer.cancel();
-														//mTimerHandler.removeCallbacks(mTimerRunnable);
+														//mDataCapture = false;
+														mAccTimer.cancel(); //Method 1
+														//mTimerHandler.removeCallbacks(mTimerRunnable); //Method 2
 												}
 												break;
 		            		}
@@ -340,17 +344,19 @@ public class MainService extends Service {
 		MainService getMyService() {
 		    return MainService.this;
 		}
-		
-		//public void handleTimeOut() {
-		//	long curTime = System.currentTimeMillis();
-		//	long period = curTime - lastUpdate;
-		//	lastUpdate = curTime;
-		//	Log.d(TAG, "MESSAGE_TIMER_EXPIRED " + period + "ms");
-    //
-		//	String localAccData = period + "ms" + tmpGunShotData;
-		//	String localAccWearData = period + "ms" + tmpGunShotWearData;
-		//	
-		//	printAccelerometerData(localAccData, gunShotFile);
-		//	printAccelerometerData(localAccWearData, gunShotWearFile);
-		//}		
+
+		//Method 1 & 2 - start
+		public void handleTimeOut() {
+			long curTime = System.currentTimeMillis();
+			long period = curTime - lastUpdate;
+			lastUpdate = curTime;
+			//Log.d(TAG, "MESSAGE_TIMER_EXPIRED " + period + "ms");
+    
+			String localAccData = period + "ms" + tmpGunShotData;
+			String localAccWearData = period + "ms" + tmpGunShotWearData;
+			
+			printAccelerometerData(localAccData, gunShotFile);
+			printAccelerometerData(localAccWearData, gunShotWearFile);
+		}
+		//Method 1 & 2 - end
 }
