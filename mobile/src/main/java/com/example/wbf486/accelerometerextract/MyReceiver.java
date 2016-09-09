@@ -24,7 +24,8 @@ public class MyReceiver extends BroadcastReceiver {
 
         //if (intent.getAction().equalsIgnoreCase("android.intent.action.ACTION_VOLUME_UP_BUTTON_PRESSED") ||
                 //intent.getAction().equalsIgnoreCase("android.intent.action.ACTION_VOLUME_DOWN_BUTTON_PRESSED")) {
-        if(intent.getAction().equalsIgnoreCase("android.intent.action.BOOT_COMPLETED")){
+        //if(intent.getAction().equalsIgnoreCase("android.intent.action.BOOT_COMPLETED")){
+        if(intent.getAction().equalsIgnoreCase("android.intent.action.ACTION_ORANGE_BUTTON_PRESSED")){
             Log.i(TAG, "starting GUN SHOT service from receiver...");
             AccIntent.setAction(MainService.ACTION_START_MAINSERVICE);
             context.startService(AccIntent);

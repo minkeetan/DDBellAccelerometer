@@ -18,11 +18,12 @@
         android:theme="@style/AppTheme">
         <receiver android:name=".MyReceiver">
             <intent-filter>
-                <action android:name="android.intent.action.ACTION_VOLUME_UP_BUTTON_PRESSED" />
-                <action android:name="android.intent.action.ACTION_VOLUME_DOWN_BUTTON_PRESSED" />
+                <!--<action android:name="android.intent.action.ACTION_VOLUME_UP_BUTTON_PRESSED" />
+                <action android:name="android.intent.action.ACTION_VOLUME_DOWN_BUTTON_PRESSED" />-->
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.ACTION_SLIDER_OFF_BUTTON_PRESSED" />
                 <action android:name="android.intent.action.ACTION_SLIDER_ON_BUTTON_PRESSED" />
+                <action android:name="android.intent.action.ACTION_ORANGE_BUTTON_PRESSED" />
             </intent-filter>
         </receiver>
 
