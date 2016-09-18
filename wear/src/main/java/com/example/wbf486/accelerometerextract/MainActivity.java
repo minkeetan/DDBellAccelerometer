@@ -34,6 +34,8 @@ public class MainActivity extends AppCompatActivity implements
     
     private boolean mBTStateConnected = false;
     
+    private final static int SAMPLING_RATE = 5;
+    
     private SensorManager mSensorManager;
     private Sensor mAccelerometer;
     private long lastUpdate = 0;
@@ -121,7 +123,7 @@ public class MainActivity extends AppCompatActivity implements
 
         long curTime = System.currentTimeMillis();
 
-        if ((curTime - lastUpdate) > 5) {
+        if ((curTime - lastUpdate) > SAMPLING_RATE) {
             long diffTime = (curTime - lastUpdate);
             lastUpdate = curTime;
 
