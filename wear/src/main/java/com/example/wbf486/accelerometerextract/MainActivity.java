@@ -101,7 +101,7 @@ public class MainActivity extends AppCompatActivity implements
     		
     		mTextView = (TextView) stub.findViewById(R.id.accWearData_id);
     		
-    		mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);       		
+    		mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_FASTEST);       		
     }
       
     @Override

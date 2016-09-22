@@ -140,18 +140,10 @@ public class MainService extends Service {
 		
 		@Override
 		public int onStartCommand(Intent intent, int flags, int startId) {		
-		    // For each start request, send a message to start a job and deliver the
-		    // start ID so we know which request we're stopping when we finish the job
-		    //Message msg = mServiceHandler.obtainMessage();
-		    //msg.arg1 = startId;
-		    //mServiceHandler.sendMessage(msg);
-
 				if (intent != null) {
 		        	final String action = intent.getAction();
 		        if (action != null) {
 		            switch (action) {
-		                //handleData(intent.getParcelableExtra(EXTRA_DATA));
-		                // Implement your handleData method. Remember not to confuse Intents, or even better make your own Parcelable
 		                case ACTION_START_MAINSERVICE:
 		                		//Start the main service
 		                		Intent dialogIntent = new Intent(this, BluetoothDialog.class);

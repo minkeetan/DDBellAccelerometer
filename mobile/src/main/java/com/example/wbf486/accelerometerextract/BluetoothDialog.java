@@ -12,15 +12,6 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.Window;
 import android.widget.TextView;
-/*
-import android.app.ActivityManager;
-import android.content.ComponentName;
-import android.content.pm.PackageManager;
-import android.view.LayoutInflater;
-import android.view.ViewGroup.LayoutParams;
-import android.view.View;
-import java.util.List;
-*/
 
 public class BluetoothDialog extends Activity {
 
@@ -60,23 +51,7 @@ public class BluetoothDialog extends Activity {
         // Setup the window
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         setContentView(R.layout.activity_bt_dialog);
-/*
-				ActivityManager am = (ActivityManager) this.getSystemService(ACTIVITY_SERVICE);
-		    List<ActivityManager.RunningTaskInfo> taskInfo = am.getRunningTasks(1);
-		    Log.d(TAG, "CURRENT Activity ::" + taskInfo.get(0).topActivity.getClassName());
-		    ComponentName componentInfo = taskInfo.get(0).topActivity;
 
-		    try {
-				    Context topActivityContext = createPackageContext(componentInfo.getPackageName(),
-		        		Context.CONTEXT_INCLUDE_CODE | Context.CONTEXT_IGNORE_SECURITY);
-		        LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-						View secondLayerView = LayoutInflater.from(topActivityContext).inflate(R.layout.activity_bt_dialog, null, false);
-						addContentView(secondLayerView, lp);
-       	}
-       	catch (PackageManager.NameNotFoundException e) {
-            Log.e(TAG, e.toString());
-        }
-*/
 				myTextView = (TextView)findViewById(R.id.btInfo_id);
 
         // Set result CANCELED in case the user backs out

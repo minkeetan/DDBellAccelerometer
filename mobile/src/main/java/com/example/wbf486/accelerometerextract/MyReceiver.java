@@ -22,9 +22,6 @@ public class MyReceiver extends BroadcastReceiver {
 
         Log.i(TAG, "Intent action = " + intent.getAction());
 
-        //if (intent.getAction().equalsIgnoreCase("android.intent.action.ACTION_VOLUME_UP_BUTTON_PRESSED") ||
-                //intent.getAction().equalsIgnoreCase("android.intent.action.ACTION_VOLUME_DOWN_BUTTON_PRESSED")) {
-        //if(intent.getAction().equalsIgnoreCase("android.intent.action.BOOT_COMPLETED")){
         if(intent.getAction().equalsIgnoreCase("android.intent.action.ACTION_ORANGE_BUTTON_PRESSED")){
             Log.i(TAG, "starting GUN SHOT service from receiver...");
             AccIntent.setAction(MainService.ACTION_START_MAINSERVICE);
@@ -32,7 +29,6 @@ public class MyReceiver extends BroadcastReceiver {
         }
         else{
             if(intent.getAction().equalsIgnoreCase("android.intent.action.ACTION_SLIDER_ON_BUTTON_PRESSED")){
-            //if(intent.getAction().equalsIgnoreCase("android.intent.action.ACTION_VOLUME_UP_BUTTON_PRESSED")){
             		Log.i(TAG, "starting GUN SHOT data capturing...");
             		AccIntent.setAction(MainService.ACTION_START_CAPTURE);
             }else if(intent.getAction().equalsIgnoreCase("android.intent.action.ACTION_SLIDER_OFF_BUTTON_PRESSED")){
