@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.support.wearable.view.WatchViewStub;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.app.FragmentManager;
 import android.view.WindowManager;
 import android.widget.TextView;
 import android.app.Dialog;
@@ -17,6 +18,7 @@ import android.content.Intent;
 import android.content.DialogInterface;
 import android.content.IntentSender.SendIntentException;
 
+import android.util.Log;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -24,16 +26,22 @@ import java.io.FileOutputStream;
 import java.io.FileInputStream;
 import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.lang.IllegalStateException;
 
 public class MainActivity extends AppCompatActivity implements
 		SensorEventListener,
 		BluetoothFragment.OnBTServiceStateChangeListener,
 		WatchViewStub.OnLayoutInflatedListener {
+			
+		// Debugging
+    private static final String TAG = "MainActivity";
+
+		static String mBTFragmentTag = "BT_FRAGMENT_TAG";
 
     private TextView mTextView;
     
     private boolean mBTStateConnected = false;
-    
+
     private final static int SAMPLING_RATE = 5;
     
     private SensorManager mSensorManager;
@@ -42,7 +50,7 @@ public class MainActivity extends AppCompatActivity implements
     private float x, y, z;
     private File mAccelerometerDataFile;  
 
-		private BluetoothFragment mBTFragment;
+		private BluetoothFragment mBTFragment = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +59,28 @@ public class MainActivity extends AppCompatActivity implements
 
         final WatchViewStub stub = (WatchViewStub) findViewById(R.id.watch_view_stub);
         stub.setOnLayoutInflatedListener(this);
+
+		    try {
+		        FragmentManager manager = getSupportFragmentManager();
+						mBTFragment = (BluetoothFragment) manager.findFragmentByTag(mBTFragmentTag);
+		        if (mBTFragment == null) {
+		            //fragment not in back stack, create it.		            
+		    				mBTFragment = new BluetoothFragment();
+		    				mBTFragment.setRetainInstance(true);
+		            FragmentTransaction transaction = manager.beginTransaction();
+		            transaction.replace(R.id.sample_content_fragment, mBTFragment, mBTFragmentTag);
+		
+		            Log.d(TAG, "addToBackStack " + mBTFragmentTag);
+		            transaction.addToBackStack(null);
+		
+		            transaction.commit();
+		        } else {
+		            manager.popBackStack();
+		        }
+		        manager.executePendingTransactions();
+		    } catch (IllegalStateException exception) {
+		        Log.w(TAG, "Unable to commit fragment, could be activity has been killed");
+		    }
 
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 				if (mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null) {
@@ -69,7 +99,7 @@ public class MainActivity extends AppCompatActivity implements
 
 		@Override
     public void onStart() {
-    		super.onStart(); 
+    		super.onStart();   		
     }
     
 		@Override
@@ -93,14 +123,8 @@ public class MainActivity extends AppCompatActivity implements
 		}
 
     @Override
-    public void onLayoutInflated(WatchViewStub stub) {
-    		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-    		mBTFragment = new BluetoothFragment();
-    		transaction.replace(R.id.sample_content_fragment, mBTFragment);
-    		transaction.commit();
-    		
+    public void onLayoutInflated(WatchViewStub stub) { 	
     		mTextView = (TextView) stub.findViewById(R.id.accWearData_id);
-    		
     		mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_FASTEST);       		
     }
       
@@ -127,7 +151,7 @@ public class MainActivity extends AppCompatActivity implements
             long diffTime = (curTime - lastUpdate);
             lastUpdate = curTime;
 
-            String accStr = " | " + x + " | " + y + " | " + z + " | \n";
+            String accStr = diffTime + "ms | " + x + " | " + y + " | " + z + " | \n";
             mTextView.setText(accStr);
             
             // save the data in a file, sample at 1/50ms

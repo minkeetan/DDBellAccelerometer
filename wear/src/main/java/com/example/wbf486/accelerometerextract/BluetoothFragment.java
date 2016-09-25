@@ -71,7 +71,6 @@ public class BluetoothFragment extends Fragment {
         }
     }
 
-
     @Override
     public void onStart() {
         super.onStart();
@@ -88,17 +87,34 @@ public class BluetoothFragment extends Fragment {
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if (mBTService != null) {
+    public void onPause() {
+        super.onPause();
+    }
+
+		@Override
+    public void onStop() {
+				if (mBTService != null) {
+            mBTService.stoppingFragment(); //must be triggered before BluetoothService::stop() to avoid restarting of BT listener
+        }     	    	
+    		super.onStop();
+    }  
+		
+		@Override
+    public void onDetach() {
+				if (mBTService != null) {
             mBTService.stop();
-        }
+        }    	
+    		super.onDetach();     		 		
+    }
+    
+    @Override
+    public void onDestroy() {    	
+        super.onDestroy();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-
         // Performing this check in onResume() covers the case in which BT was
         // not enabled during onStart(), so we were paused to enable it...
         // onResume() will be called when ACTION_REQUEST_ENABLE activity returns.
@@ -108,7 +124,7 @@ public class BluetoothFragment extends Fragment {
                 // Start the Bluetooth chat services
                 mBTService.start();
             }
-        }
+        }        
     }
 
     // Container Activity must implement this interface
@@ -127,7 +143,7 @@ public class BluetoothFragment extends Fragment {
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
                     + " must implement OnBTServiceStateChangeListener");
-        }
+        }        
     }
 
     /**
@@ -203,52 +219,52 @@ public class BluetoothFragment extends Fragment {
         @Override
         public void handleMessage(Message msg) {
             FragmentActivity activity = getActivity();
-            switch (msg.what) {
-                case Constants.MESSAGE_STATE_CHANGE:
-                    switch (msg.arg1) {
-                        case BluetoothService.STATE_CONNECTED:
-                            setStatus(getString(R.string.title_connected_to, mConnectedDeviceName));
-                            // Send the event to the host activity
-        										mCallback.onBTServiceStateConnected(true);
-                            break;
-                        case BluetoothService.STATE_CONNECTING:
-                            setStatus(R.string.title_connecting);
-                            break;
-                        case BluetoothService.STATE_LISTEN:
-                        case BluetoothService.STATE_NONE:
-                            setStatus(R.string.title_not_connected);
-                            // Send the event to the host activity
-        										mCallback.onBTServiceStateConnected(false);
-                            break;
-                    }
-                    break;
-                case Constants.MESSAGE_WRITE:
-                    byte[] writeBuf = (byte[]) msg.obj;
-                    // construct a string from the buffer
-                    String writeMessage = new String(writeBuf);
-                    
-                    break;
-                case Constants.MESSAGE_READ:
-                    byte[] readBuf = (byte[]) msg.obj;
-                    // construct a string from the valid bytes in the buffer
-                    String readMessage = new String(readBuf, 0, msg.arg1);
-                    
-                    break;
-                case Constants.MESSAGE_DEVICE_NAME:
-                    // save the connected device's name
-                    mConnectedDeviceName = msg.getData().getString(Constants.DEVICE_NAME);
-                    if (null != activity) {
-                        Toast.makeText(activity, "Connected to "
-                                + mConnectedDeviceName, Toast.LENGTH_SHORT).show();
-                    }
-                    break;
-                case Constants.MESSAGE_TOAST:
-                    if (null != activity) {
-                        Toast.makeText(activity, msg.getData().getString(Constants.TOAST),
-                                Toast.LENGTH_SHORT).show();
-                    }
-                    break;
-            }
+		        switch (msg.what) {
+		            case Constants.MESSAGE_STATE_CHANGE:
+		                switch (msg.arg1) {
+		                    case BluetoothService.STATE_CONNECTED:
+		                        setStatus(getString(R.string.title_connected_to, mConnectedDeviceName));
+		                        // Send the event to the host activity
+		                        mCallback.onBTServiceStateConnected(true);
+		                        break;
+		                    case BluetoothService.STATE_CONNECTING:
+		                        setStatus(R.string.title_connecting);
+		                        break;
+		                    case BluetoothService.STATE_LISTEN:
+		                    case BluetoothService.STATE_NONE:
+		                        setStatus(R.string.title_not_connected);
+		                        // Send the event to the host activity
+		                        mCallback.onBTServiceStateConnected(false);
+		                        break;
+		                }
+		                break;
+		            case Constants.MESSAGE_WRITE:
+		                byte[] writeBuf = (byte[]) msg.obj;
+		                // construct a string from the buffer
+		                String writeMessage = new String(writeBuf);
+		                
+		                break;
+		            case Constants.MESSAGE_READ:
+		                byte[] readBuf = (byte[]) msg.obj;
+		                // construct a string from the valid bytes in the buffer
+		                String readMessage = new String(readBuf, 0, msg.arg1);
+		                
+		                break;
+		            case Constants.MESSAGE_DEVICE_NAME:
+		                // save the connected device's name
+		                mConnectedDeviceName = msg.getData().getString(Constants.DEVICE_NAME);
+		                if (null != activity) {
+		                    Toast.makeText(activity, "Connected to "
+		                            + mConnectedDeviceName, Toast.LENGTH_SHORT).show();
+		                }
+		                break;
+		            case Constants.MESSAGE_TOAST:
+		                if (null != activity) {
+		                    Toast.makeText(activity, msg.getData().getString(Constants.TOAST),
+		                            Toast.LENGTH_SHORT).show();
+		                }
+		                break;
+		        }
         }
     };
 
