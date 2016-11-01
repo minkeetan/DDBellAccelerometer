@@ -65,8 +65,9 @@ public class MyAccelerometer implements SensorEventListener {
 				long curTime = System.currentTimeMillis();
 
         if ((curTime - lastUpdate) > SAMPLING_RATE) {
+        		long diffTime = (curTime - lastUpdate);
             lastUpdate = curTime;
-            String accStr = " | " + xAxis + " | " + yAxis + " | " + zAxis + " | \n";
+            String accStr = diffTime + "ms | " + xAxis + " | " + yAxis + " | " + zAxis + " | \n";
 						mHandler.obtainMessage(Constants.MESSAGE_ACCELEROMETER_DATA, accStr).sendToTarget();
 				}
     }

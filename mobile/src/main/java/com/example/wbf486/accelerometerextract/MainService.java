@@ -269,29 +269,34 @@ public class MainService extends Service {
         }
 		}
 
-	public void patternCompare(String accData) {
-
-		String[] retStr = accData.split("\\|");
-		//Log.i(TAG, "accData_test = " + accData + " retStr[0] = " + retStr[0] + " retStr[1] = " + retStr[1]  + " retStr[2] = " + retStr[2]);
-		double y = Math.abs(Double.parseDouble(retStr[1]));
-		double z = Math.abs(Double.parseDouble(retStr[2]));
-
-		Log.i(TAG, "value y = " + y + "value y_old = " + y_old);
-		Log.i(TAG, "substration = " + (Math.abs(y_old) - y));
-
-		if(y_old != 0 && z_old != 0 && ((Math.abs(y_old) - y) > 5) && ((Math.abs(z_old) - z) > 2)) {
-			Log.i(TAG, "condition matched!");
-			Toast.makeText(this, "Gun Shot Detected !!!", Toast.LENGTH_SHORT).show();
-			y_old = 0;
-			z_old = 0;
+		public void patternCompare(String accData) {	
+				String[] retStr = accData.split("\\|");
+				//Log.i(TAG, "accData_test = " + accData + " retStr[0] = " + retStr[0] + " retStr[1] = " + retStr[1]  + " retStr[2] = " + retStr[2]);
+				double y = Math.abs(Double.parseDouble(retStr[1]));
+				double z = Math.abs(Double.parseDouble(retStr[2]));
+				
+				Log.i(TAG, "value y = " + y + "value y_old = " + y_old);
+				Log.i(TAG, "substration = " + (Math.abs(y_old) - y));
+				
+				if(y_old != 0 && z_old != 0 && ((Math.abs(y_old) - y) > 5) && ((Math.abs(z_old) - z) > 2)) {
+					Log.i(TAG, "condition matched!");
+					displayAlertDialog();
+					y_old = 0;
+					z_old = 0;
+				}
+				else{
+					y_old = y;
+					z_old = z;
+				}
 		}
-		else{
-			y_old = y;
-			z_old = z;
+		
+		public void displayAlertDialog() {
+				Intent dialogIntent = new Intent(this, GunShotDetected.class);
+				dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				Log.i(TAG, "Gun shot detected, displaying notification");
+				startActivity(dialogIntent);	                		
 		}
-
-	}
-
+	
 		MainService getMyService() {
 		    return MainService.this;
 		}

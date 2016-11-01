@@ -44,6 +44,8 @@ public class BluetoothService {
     private ConnectThread mConnectThread;
     private ConnectedThread mConnectedThread;
     private int mState;
+    
+    private boolean mFragmentStarted;
 
     // Constants that indicate the current connection state
     public static final int STATE_NONE = 0;       // we're doing nothing
@@ -61,6 +63,8 @@ public class BluetoothService {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mState = STATE_NONE;
         mHandler = handler;
+        
+        mFragmentStarted = true; //BluetoothFragment creates this BluetoothService instance
     }
 
     /**
@@ -262,8 +266,11 @@ public class BluetoothService {
         msg.setData(bundle);
         mHandler.sendMessage(msg);
 
-        // Start the service over to restart listening mode
-        BluetoothService.this.start();
+				if(mFragmentStarted == true)
+				{
+        		// Start the service over to restart listening mode
+        		BluetoothService.this.start();
+        }
     }
 
     /**
@@ -469,7 +476,7 @@ public class BluetoothService {
                     Log.e(TAG, "disconnected", e);
                     connectionLost();
                     // Start the service over to restart listening mode
-                    BluetoothService.this.start();
+                    //BluetoothService.this.start();
                     break;
                 }
             }
@@ -500,4 +507,8 @@ public class BluetoothService {
             }
         }
     }
+    
+		public void stoppingFragment() {
+				mFragmentStarted = false;
+		}
 }

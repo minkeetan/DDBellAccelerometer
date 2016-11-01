@@ -22,4 +22,7 @@
     <string name="bt_dialog">BT Setup Dialog</string>
     <string name="setting_up_bt">Setting up BT connection...</string>
     
+    <!-- GunShot Detected Dialog -->
+    <string name="gun_is_fired">Gun Fired!</string>
+    
 </resources>
