@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity implements
     
     private boolean mBTStateConnected = false;
     
-    private final static int SAMPLING_RATE = 5;
+    private final static int SAMPLING_RATE = 50;
     
     private SensorManager mSensorManager;
     private Sensor mAccelerometer;
@@ -101,7 +101,7 @@ public class MainActivity extends AppCompatActivity implements
     		
     		mTextView = (TextView) stub.findViewById(R.id.accWearData_id);
     		
-    		mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_FASTEST);       		
+    		mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_FASTEST);
     }
       
     @Override
@@ -121,13 +121,13 @@ public class MainActivity extends AppCompatActivity implements
             z = event.values[2];
         }
 
-        long curTime = System.currentTimeMillis();
+        long curTime = System.nanoTime();;
+        long diffTime = (curTime - lastUpdate)/1000000;
 
-        if ((curTime - lastUpdate) > SAMPLING_RATE) {
-            long diffTime = (curTime - lastUpdate);
+        if (diffTime > SAMPLING_RATE) {
             lastUpdate = curTime;
 
-            String accStr = " | " + x + " | " + y + " | " + z + " | \n";
+            String accStr = x + " | " + y + " | " + z + " | \n";
             mTextView.setText(accStr);
             
             // save the data in a file, sample at 1/50ms

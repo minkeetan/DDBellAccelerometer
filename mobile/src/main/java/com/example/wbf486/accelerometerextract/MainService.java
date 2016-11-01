@@ -33,10 +33,10 @@ public class MainService extends Service {
 		private ServiceHandler mServiceHandler;
 		private long lastUpdate = 0;
 		
-		public String gunShotFile;
+		//public String gunShotFile;
 		public String gunShotWearFile;
 		
-		public MyAccelerometer mAccelero;
+		//public MyAccelerometer mAccelero;
 		
     /**
      * Name of the connected device
@@ -58,6 +58,8 @@ public class MainService extends Service {
 		static final String EXTRA_DATA = "com.example.wbf486.accelerometerextract.EXTRA_DATA";
 
 		static boolean DataCaptureEnabled = false;
+
+		private double y_old = 0, z_old = 0;
 
 		// Handler that receives messages from the thread
 		private final class ServiceHandler extends Handler {      
@@ -98,7 +100,8 @@ public class MainService extends Service {
                     // construct a string from the valid bytes in the buffer
                     String readMessage = new String(readBuf, 0, msg.arg1);
 					if(DataCaptureEnabled){
-						printAccelerometerData(readMessage, gunShotWearFile);
+						patternCompare(readMessage);
+						//printAccelerometerData(readMessage, gunShotWearFile);
 					}
                     break;
                 case Constants.MESSAGE_DEVICE_NAME:
@@ -113,11 +116,11 @@ public class MainService extends Service {
                         Toast.makeText(myService, msg.getData().getString(Constants.TOAST), Toast.LENGTH_SHORT).show();
                     }
                     break;
-				case Constants.MESSAGE_ACCELEROMETER_DATA:
-					if(DataCaptureEnabled) {
-						printAccelerometerData((String) msg.obj, gunShotFile);
-					}
-					break;
+				//case Constants.MESSAGE_ACCELEROMETER_DATA:
+				//	if(DataCaptureEnabled) {
+				//		printAccelerometerData((String) msg.obj, gunShotFile);
+				//	}
+				//	break;
 		        }		          
 		    }
 		}
@@ -135,7 +138,7 @@ public class MainService extends Service {
 		  	mServiceLooper = thread.getLooper();
 		  	mServiceHandler = new ServiceHandler(mServiceLooper);
 
-		  	mAccelero = new MyAccelerometer(this, mServiceHandler);
+		  	//mAccelero = new MyAccelerometer(this, mServiceHandler);
 		}
 		
 		@Override
@@ -197,12 +200,12 @@ public class MainService extends Service {
 							SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd_hhmmss." + millisecond);
 							String DateToStr = format.format(curDate);
 
-							gunShotFile = "ACC_" + DateToStr+".txt";
+							//gunShotFile = "ACC_" + DateToStr+".txt";
 							gunShotWearFile = "ACC_" + DateToStr+"_wear.txt";
 
 							DataCaptureEnabled = true;
 
-							mAccelero.startCapture();
+							//mAccelero.startCapture();
 							break;
 						case ACTION_STOP_CAPTURE:
 							//Stop the accelerometer capture
@@ -210,7 +213,7 @@ public class MainService extends Service {
 
 							DataCaptureEnabled = false;
 
-							mAccelero.stopCapture();
+							//mAccelero.stopCapture();
 							break;
 		            }
 		        }
@@ -242,7 +245,7 @@ public class MainService extends Service {
 
             File file;
             //File path = new File(Environment.getExternalStorageDirectory().getAbsolutePath()+"/../storage/sdcard1/MotoGunShot");
-			File path = new File(secondStore + "/MotoGunShot/");
+			File path = new File(secondStore + "/MotoGunShot_wearableOnly/");
 			//Log.i(TAG, "printAccelerometerData: " + path);
 
             path.mkdirs();
@@ -265,7 +268,30 @@ public class MainService extends Service {
             }
         }
 		}
-		
+
+	public void patternCompare(String accData) {
+
+		String[] retStr = accData.split("\\|");
+		//Log.i(TAG, "accData_test = " + accData + " retStr[0] = " + retStr[0] + " retStr[1] = " + retStr[1]  + " retStr[2] = " + retStr[2]);
+		double y = Math.abs(Double.parseDouble(retStr[1]));
+		double z = Math.abs(Double.parseDouble(retStr[2]));
+
+		Log.i(TAG, "value y = " + y + "value y_old = " + y_old);
+		Log.i(TAG, "substration = " + (Math.abs(y_old) - y));
+
+		if(y_old != 0 && z_old != 0 && ((Math.abs(y_old) - y) > 5) && ((Math.abs(z_old) - z) > 2)) {
+			Log.i(TAG, "condition matched!");
+			Toast.makeText(this, "Gun Shot Detected !!!", Toast.LENGTH_SHORT).show();
+			y_old = 0;
+			z_old = 0;
+		}
+		else{
+			y_old = y;
+			z_old = z;
+		}
+
+	}
+
 		MainService getMyService() {
 		    return MainService.this;
 		}
