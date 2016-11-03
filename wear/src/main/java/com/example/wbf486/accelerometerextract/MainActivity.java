@@ -17,7 +17,6 @@ import android.app.DialogFragment;
 import android.content.Intent;
 import android.content.DialogInterface;
 import android.content.IntentSender.SendIntentException;
-
 import android.util.Log;
 
 import java.io.File;
@@ -28,11 +27,18 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.lang.IllegalStateException;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 public class MainActivity extends AppCompatActivity implements
 		SensorEventListener,
 		BluetoothFragment.OnBTServiceStateChangeListener,
 		WatchViewStub.OnLayoutInflatedListener {
-			
+
+		private Timer myTimer;
+
+		private String mAccDataTmp = null;
+		
 		// Debugging
     private static final String TAG = "MainActivity";
 
@@ -42,7 +48,7 @@ public class MainActivity extends AppCompatActivity implements
     
     private boolean mBTStateConnected = false;
     
-    private final static int SAMPLING_RATE = 50;
+    private final static int SAMPLING_RATE_NS = 10000000;
     
     private SensorManager mSensorManager;
     private Sensor mAccelerometer;
@@ -51,6 +57,26 @@ public class MainActivity extends AppCompatActivity implements
     private File mAccelerometerDataFile;  
 
 		private BluetoothFragment mBTFragment = null;
+
+		private Runnable Timer_Tick = new Runnable() {
+				public void run() {
+						//This method runs in the same thread as the UI.    	       
+						//Do something to the UI thread here
+					  
+					  long curTime = System.nanoTime();
+			      long diffTime = curTime - lastUpdate;
+			      lastUpdate = curTime;
+			      
+			      Log.d(TAG, diffTime + "ns" + mAccDataTmp);
+
+			      mTextView.setText(mAccDataTmp);		//display the data on the watch
+					  
+					  //Send the accelerometer data to mobile app via BT connection
+					  if( (mBTFragment != null) && (mBTStateConnected == true) ) {
+					  		mBTFragment.sendMessage(mAccDataTmp);
+					  }
+				}
+		};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,7 +105,7 @@ public class MainActivity extends AppCompatActivity implements
 		        }
 		        manager.executePendingTransactions();
 		    } catch (IllegalStateException exception) {
-		        Log.w(TAG, "Unable to commit fragment, could be activity has been killed");
+		        Log.d(TAG, "Unable to commit fragment, could be activity has been killed");
 		    }
 
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
@@ -88,6 +114,7 @@ public class MainActivity extends AppCompatActivity implements
 				  mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 				  if (mAccelerometer.getMinDelay() != 0) {
 				  	//this is a streaming sensor
+				  	Log.d(TAG, "minimum time interval (ms) = " + mAccelerometer.getMinDelay());
 				  }
 				}
 				else {
@@ -95,6 +122,8 @@ public class MainActivity extends AppCompatActivity implements
 				}
 				
 				getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+		  	myTimer = new Timer();
     }
 
 		@Override
@@ -123,15 +152,25 @@ public class MainActivity extends AppCompatActivity implements
 		}
 
     @Override
-    public void onLayoutInflated(WatchViewStub stub) { 	
+    public void onLayoutInflated(WatchViewStub stub) {
     		mTextView = (TextView) stub.findViewById(R.id.accWearData_id);
 
     		mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_FASTEST);
+    		
+    		myTimer.scheduleAtFixedRate(new TimerTask() {
+					@Override
+					public void run() {
+						TimerMethod();
+					}
+				}, 0, (SAMPLING_RATE_NS/1000000)); //start the task immediately with period of 30ms
     }
       
     @Override
     public void onDestroy() {
         super.onDestroy();
+                
+        myTimer.cancel();
+    		
     		mSensorManager.unregisterListener(this);
     }
     
@@ -144,37 +183,34 @@ public class MainActivity extends AppCompatActivity implements
             x = event.values[0];
             y = event.values[1];
             z = event.values[2];
-        }
-
-        long curTime = System.nanoTime();;
-        long diffTime = (curTime - lastUpdate)/1000000;
-
-        if (diffTime > SAMPLING_RATE) {
-            lastUpdate = curTime;
-
-            String accStr = diffTime + "ms | " + x + " | " + y + " | " + z + " | \n";
-
-            mTextView.setText(accStr);
             
-            // save the data in a file, sample at 1/50ms
-            File path = this.getFilesDir();
-            mAccelerometerDataFile = new File(path, "MyAccelerometerWearData.txt");
+            mAccDataTmp = " | " + x + " | " + y + " | " + z + " | \n";
 
-            try {
-                FileOutputStream stream = new FileOutputStream(mAccelerometerDataFile, true);
-                stream.write(accStr.getBytes());
-                stream.flush();
-                stream.close();
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            
-            //send the accelerometer data to mobile app via BT connection
-            if( (mBTFragment != null) && (mBTStateConnected == true) ) {
-            		mBTFragment.sendMessage(accStr);
-            }        
+		        //long curTime = System.nanoTime();
+		        //long diffTime = curTime - lastUpdate;
+		        //if (diffTime >= SAMPLING_RATE_NS) {
+		            //lastUpdate = curTime;
+		
+		            //String accStr = " | " + x + " | " + y + " | " + z + " | \n";
+		            //Log.d(TAG, diffTime + "ns | " + x + " | " + y + " | " + z + " |");
+
+		            //mTextView.setText(accStr);
+		            
+		            // save the data in a file, sample at 1/50ms
+		            //File path = this.getFilesDir();
+		            //mAccelerometerDataFile = new File(path, "MyAccelerometerWearData.txt");
+		            //
+		            //try {
+		            //    FileOutputStream stream = new FileOutputStream(mAccelerometerDataFile, true);
+		            //    stream.write(accStr.getBytes());
+		            //    stream.flush();
+		            //    stream.close();
+		            //} catch (FileNotFoundException e) {
+		            //    e.printStackTrace();
+		            //} catch (IOException e) {
+		            //    e.printStackTrace();
+		            //}
+		        //}
         }
     }
 
@@ -191,5 +227,15 @@ public class MainActivity extends AppCompatActivity implements
 						mBTStateConnected = false;
 				}
 		}
+		
+		private void TimerMethod()
+		{
+			//This method is called directly by the timer
+			//and runs in the same thread as the timer.
+	
+			//We call the method that will work with the UI
+			//through the runOnUiThread method.
+			this.runOnUiThread(Timer_Tick);
+		}		
 }
 

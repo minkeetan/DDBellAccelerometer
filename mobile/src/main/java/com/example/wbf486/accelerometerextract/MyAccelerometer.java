@@ -7,16 +7,17 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.util.Log;
 
 public class MyAccelerometer implements SensorEventListener {
-
+		private static final String TAG = "MyAccelerometer";
 		private long lastUpdate = 0;
 
     private float xAxis;
     private float yAxis;
     private float zAxis;
 
-    private final static int SAMPLING_RATE = 5;
+    //private final static int SAMPLING_RATE_NS = 30000000;
 
     SensorManager mSensorManager;
     Sensor mAccelerometer;
@@ -28,10 +29,18 @@ public class MyAccelerometer implements SensorEventListener {
      }
 
     public void startCapture(){
-        if( (mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)) != null ) {
-            // Success! There's a accelerometer.
-            mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_FASTEST);
-        }
+    	if (mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null) {
+				  // Success! There's a accelerometer.
+				  mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+				  if (mAccelerometer.getMinDelay() != 0) {
+				  	//this is a streaming sensor
+				  	Log.d(TAG, "minimum time interval (ms) = " + mAccelerometer.getMinDelay());
+				  	mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_FASTEST, mHandler);
+				  }
+				}
+				else {
+				  // Failure! No accelerometer.
+				}
     }
 
     public void stopCapture(){
@@ -60,15 +69,20 @@ public class MyAccelerometer implements SensorEventListener {
 						xAxis = event.values[0];
 						yAxis = event.values[1];
 						zAxis = event.values[2];
-				}
-				
-				long curTime = System.currentTimeMillis();
 
-        if ((curTime - lastUpdate) > SAMPLING_RATE) {
-        		long diffTime = (curTime - lastUpdate);
-            lastUpdate = curTime;
-            String accStr = diffTime + "ms | " + xAxis + " | " + yAxis + " | " + zAxis + " | \n";
+						String accStr = " | " + xAxis + " | " + yAxis + " | " + zAxis + " | \n";
 						mHandler.obtainMessage(Constants.MESSAGE_ACCELEROMETER_DATA, accStr).sendToTarget();
+						
+						//long curTime = System.nanoTime();
+						//long diffTime = curTime - lastUpdate;
+		        //if (diffTime >= SAMPLING_RATE_NS) {
+		        //    lastUpdate = curTime; 
+		        //    String accStr = " | " + xAxis + " | " + yAxis + " | " + zAxis + " | \n";
+		        //    
+		        //    Log.d(TAG, diffTime + "ns | " + xAxis + " | " + yAxis + " | " + zAxis + " |");
+		        //    
+						//		mHandler.obtainMessage(Constants.MESSAGE_ACCELEROMETER_DATA, accStr).sendToTarget();		
+						//}
 				}
     }
 

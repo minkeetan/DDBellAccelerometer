@@ -166,7 +166,7 @@ public class BluetoothFragment extends Fragment {
     public void sendMessage(String message) {
         // Check that we're actually connected before trying anything
         if (mBTService.getState() != BluetoothService.STATE_CONNECTED) {
-            Toast.makeText(getActivity(), R.string.not_connected, Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "Error: " + R.string.not_connected);
             return;
         }
 
@@ -277,7 +277,7 @@ public class BluetoothFragment extends Fragment {
         						mBTService = new BluetoothService(getActivity(), mHandler);
                 } else {
                     // User did not enable Bluetooth or an error occurred
-                    Log.d(TAG, "BT not enabled");
+                    Log.d(TAG, "Error: BT not enabled");
                     Toast.makeText(getActivity(), R.string.bt_not_enabled_leaving,
                             Toast.LENGTH_SHORT).show();
                     getActivity().finish();
